@@ -1,5 +1,5 @@
 #! /usr/bin/python
-from littlebuild.littlebuild import *
+from .littlebuild.littlebuild import *
 
 project_title = "example"
 
