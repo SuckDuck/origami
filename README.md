@@ -38,7 +38,15 @@ Integrating Origami into another project:
 1. Include `src` in your list of source files.
 1. Add `include` and `statics` to your include paths.
 
-Origami includes [LittleBuild](https://github.com/SuckDuck/littlebuild) as a submodule, which is used to build the resources and the example. You can also use it to compile your own project.
+<br>
+
+Origami includes [LittleBuild](https://github.com/SuckDuck/littlebuild) as a submodule, which is used to build the resources and the example. You can also use it to compile your own project. If you do, you can import the origami build functions like this:
+
+```python
+import origami.build as origami
+```
+
+Then you can build Origami alongside your project from the same place.
 
 ## Usage
 

@@ -1,11 +1,13 @@
 #! /usr/bin/python
 from .littlebuild.littlebuild import *
+import os
 
 project_title = "example"
+project_root = str(Path(__file__).parent)
 
 def statics():
-    ASSETS_DIR = "assets"
-    STATICS_DIR = "statics"
+    ASSETS_DIR = os.path.join(project_root,"assets")
+    STATICS_DIR = os.path.join(project_root,"statics")
     create_dirs([STATICS_DIR])
 
     input_files = [str(Path(ASSETS_DIR) / f) for f in os.listdir(ASSETS_DIR)]
@@ -14,10 +16,18 @@ def statics():
 def example():
     CC = "gcc"
     CFLAGS =  ["-g", "-O0"]
-    BUILD_DIR = "build"
-    SRC_DIRS = ["src","example"]
+    BUILD_DIR = f"{project_root}/build"
+    SRC_DIRS = [
+        os.path.join(project_root,"src"),
+        os.path.join(project_root,"example")
+    ]
     all_srcs = [f"{d}/{f}" for d in SRC_DIRS for f in os.listdir(d)]
-    INCLUDES = ["include","statics"]
+    
+    INCLUDES = [
+        os.path.join(project_root, "include"),
+        os.path.join(project_root, "statics")
+    ]
+    
     LIB_PATHS = []
     LINKS = ["-lX11","-lm","-lraylib"]
     LDFLAGS = []
@@ -28,8 +38,8 @@ def example():
     link(CC,objs,LIB_PATHS,LINKS,LDFLAGS,BUILD_DIR,project_title)
 
 def clean():
-    rm_all("build")
-    rm_all("statics")
+    rm_all(os.path.join(project_root, "build"))
+    rm_all(os.path.join(project_root, "statics"))
 
 
 if __name__ == "__main__":
