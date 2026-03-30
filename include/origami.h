@@ -1,28 +1,94 @@
 #ifndef origami_h
 #define origami_h
 
-#define OG_DEFAULT_FONT_SIZE         13
-#define OG_VIEWPORT_TITLE_H          20
-#define OG_VIEWPORT_CORNER_S         12
-#define OG_VIEWPORT_OUTLINE_T         1
-#define OG_VIEWPORT_PANEL_HANDLE_S    5
-#define OG_VIEWPORT_MIN_W           200
-#define OG_VIEWPORT_MIN_H           200
-#define OG_MIN_PANEL_SIZE           100
-#define OG_ZOOM_SPEED              0.1f
-#define OG_SCROLL_SPEED               8
-#define OG_ICONS_Q                    7
-#define OG_BG_C                    CLITERAL(Color){ 40, 40, 40,255}
-#define OG_VIEWPORT_BG_C           CLITERAL(Color){ 55, 55, 55,255}
-#define OG_VIEWPORT_TITLE_C        CLITERAL(Color){  0,121,241,255}
-#define OG_MODAL_VIEWPORT_C        CLITERAL(Color){241, 60, 60,255}
-#define OG_TEXT_C                  CLITERAL(Color){200,200,200,255}
-#define OG_VIEWPORT_OUTLINE_C      OG_BG_C
-#define OG_CMD_BAR_C               CLITERAL(Color){ 30, 30, 30,255}
-#define OG_CMD_BAR_VIEWPORT_C      CLITERAL(Color){ 35, 60, 90,255}
-#define OG_LOGS_C                  CLITERAL(Color){255,255,  0,255}
-#define OG_MODKEY                  KEY_LEFT_SHIFT
-#define OG_COMMAND_BAR_KEY         KEY_ENTER
+
+#ifndef OG_DEFAULT_FONT_SIZE
+#define OG_DEFAULT_FONT_SIZE 13
+#endif
+
+#ifndef OG_VIEWPORT_TITLE_H
+#define OG_VIEWPORT_TITLE_H 20
+#endif
+
+#ifndef OG_VIEWPORT_CORNER_S
+#define OG_VIEWPORT_CORNER_S 12
+#endif
+
+#ifndef OG_VIEWPORT_OUTLINE_T
+#define OG_VIEWPORT_OUTLINE_T 1
+#endif
+
+#ifndef OG_VIEWPORT_PANEL_HANDLE_S
+#define OG_VIEWPORT_PANEL_HANDLE_S 5
+#endif
+
+#ifndef OG_VIEWPORT_MIN_W
+#define OG_VIEWPORT_MIN_W 200
+#endif
+
+#ifndef OG_VIEWPORT_MIN_H
+#define OG_VIEWPORT_MIN_H 200
+#endif
+
+#ifndef OG_MIN_PANEL_SIZE
+#define OG_MIN_PANEL_SIZE 100
+#endif
+
+#ifndef OG_ZOOM_SPEED
+#define OG_ZOOM_SPEED 0.1f
+#endif
+
+#ifndef OG_SCROLL_SPEED
+#define OG_SCROLL_SPEED 8
+#endif
+
+#ifndef OG_ICONS_Q
+#define OG_ICONS_Q 7
+#endif
+
+#ifndef OG_BG_C
+#define OG_BG_C CLITERAL(Color){ 40, 40, 40,255}
+#endif
+
+#ifndef OG_VIEWPORT_BG_C
+#define OG_VIEWPORT_BG_C CLITERAL(Color){ 55, 55, 55,255}
+#endif
+
+#ifndef OG_VIEWPORT_TITLE_C
+#define OG_VIEWPORT_TITLE_C CLITERAL(Color){  0,121,241,255}
+#endif
+
+#ifndef OG_MODAL_VIEWPORT_C
+#define OG_MODAL_VIEWPORT_C CLITERAL(Color){241, 60, 60,255}
+#endif
+
+#ifndef OG_TEXT_C
+#define OG_TEXT_C CLITERAL(Color){200,200,200,255}
+#endif
+
+#ifndef OG_VIEWPORT_OUTLINE_C
+#define OG_VIEWPORT_OUTLINE_C OG_BG_C
+#endif
+
+#ifndef OG_CMD_BAR_C
+#define OG_CMD_BAR_C CLITERAL(Color){ 30, 30, 30,255}
+#endif
+
+#ifndef OG_CMD_BAR_VIEWPORT_C
+#define OG_CMD_BAR_VIEWPORT_C CLITERAL(Color){ 35, 60, 90,255}
+#endif
+
+#ifndef OG_LOGS_C
+#define OG_LOGS_C CLITERAL(Color){255,255,  0,255}
+#endif
+
+#ifndef OG_MODKEY
+#define OG_MODKEY KEY_LEFT_SHIFT
+#endif
+
+#ifndef OG_COMMAND_BAR_KEY
+#define OG_COMMAND_BAR_KEY KEY_ENTER
+#endif
 
 #include <raylib.h>
 #include "microui.h"
