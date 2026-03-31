@@ -6,7 +6,7 @@
 #include <raylib.h>
 #include <rlgl.h>
 #include "origami.h"
-#include "Inconsolata-SemiBold.h"
+#include "DejaVuSansMono.h"
 #include "icons.h"
 #include "microui.h"
 
@@ -1134,8 +1134,8 @@ int OG_Init(char* title, int fps){
 
     OG.defaultFont = LoadFontFromMemory(
         ".ttf", 
-        Inconsolata_SemiBold_ttf, 
-        Inconsolata_SemiBold_ttf_len, 
+        DejaVuSansMono_ttf, 
+        DejaVuSansMono_ttf_len, 
         32, NULL, 95
     );
 
