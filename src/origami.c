@@ -6,7 +6,7 @@
 #include <raylib.h>
 #include <rlgl.h>
 #include "origami.h"
-#include "DejaVuSansMono.h"
+#include "DejaVuSansMono-Bold.h"
 #include "icons.h"
 #include "microui.h"
 
@@ -1132,13 +1132,26 @@ int OG_Init(char* title, int fps){
     SetExitKey(0);
     SetTargetFPS(fps);
 
+    const char *chars =
+    "abcdefghijklmnopqrstuvwxyz"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "0123456789"
+    " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+    "│─└├";
+
+    int count = 0;
+    int *codepoints = LoadCodepoints(chars, &count);
+
     OG.defaultFont = LoadFontFromMemory(
-        ".ttf", 
-        DejaVuSansMono_ttf, 
-        DejaVuSansMono_ttf_len, 
-        32, NULL, 95
+        ".ttf",
+        DejaVuSansMono_Bold_ttf,
+        DejaVuSansMono_Bold_ttf_len,
+        32,
+        codepoints,
+        count
     );
 
+    UnloadCodepoints(codepoints);
     OG.defaultFontSize = OG_DEFAULT_FONT_SIZE;
 
     Image iconsImage = LoadImageFromMemory(".png", icons_png, icons_png_len);
