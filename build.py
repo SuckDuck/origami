@@ -1,5 +1,8 @@
 #! /usr/bin/python
-from .littlebuild.littlebuild import *
+try:
+    from .littlebuild.littlebuild import *
+except ImportError:
+    from littlebuild.littlebuild import *
 import os
 
 project_title = "example"
