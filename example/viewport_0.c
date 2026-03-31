@@ -93,7 +93,7 @@ static void BottomPanel(OG_Viewport *v, mu_Context *mu){
 
     int height = c->rect.h - mu->style->spacing*2 - 2;
     mu_layout_row(mu, 4, (const int[]){ws,ws,ws,-1}, height);
-    char *words[] = {"LEAF","DOOR", "WALL", "LIGHT"};
+    char *words[] = {"LEAF└├│─","DOOR", "WALL", "LIGHT"};
     for (int i=0; i<4; i++)
         if (mu_button(mu, words[i]))  OG_PushLog("%s", words[i]);
 }
