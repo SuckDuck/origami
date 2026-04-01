@@ -945,6 +945,8 @@ bool OG_IsMouseButtonPressed(OG_Viewport *v, int button){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
     if (OG.modalViewport && v != OG.modalViewport) return false;
+    if (!OG_MouseInViewport(v, false, false, true))
+        return false;
     return IsMouseButtonPressed(button);
 }
 
@@ -952,6 +954,8 @@ bool OG_IsMouseButtonReleased(OG_Viewport *v, int button){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
     if (OG.modalViewport && v != OG.modalViewport) return false;
+    if (!OG_MouseInViewport(v, false, false, true))
+        return false;
     return IsMouseButtonReleased(button);
 }
 
