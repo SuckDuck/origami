@@ -1146,8 +1146,9 @@ int OG_Init(char* title, int fps){
     "abcdefghijklmnopqrstuvwxyz"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "0123456789"
-    " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
-    "│─└├";
+    " !\"#$%&'()*+,-./:;<=>∧⋀⌃?@[\\]^_`{|}~"
+    "│─└├"
+    "⬅⮌←⟵↑";
 
     int count = 0;
     int *codepoints = LoadCodepoints(chars, &count);
