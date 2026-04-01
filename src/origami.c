@@ -918,6 +918,12 @@ bool OG_MouseInViewport(OG_Viewport* v, bool titleBar, bool resizeHandle, bool o
     return false;
 }
 
+float OG_GetMouseWheelMove(OG_Viewport *v){
+    if (OG.viewports.tail != v) return 0.0f;
+    if (!OG_MouseInViewport(v, false, false, true)) return 0.0f;
+    return GetMouseWheelMove();
+}
+
 Vector2 OG_GetMouseOverlayPosition(OG_Viewport* v){
     Vector2 mousePosition = GetMousePosition();
     return (Vector2){
@@ -945,6 +951,7 @@ bool OG_IsMouseButtonReleased(int button){
 }
 
 void OG_ViewportUpdateZoom(OG_Viewport* v){
+    if (OG.viewports.tail != v) return;
     if (!OG_MouseInViewport(v, false, false, true)) return;
     v->camera.zoom += GetMouseWheelMove() * OG_ZOOM_SPEED;
     if (v->camera.zoom < v->minZoom) v->camera.zoom = v->minZoom;
@@ -952,6 +959,7 @@ void OG_ViewportUpdateZoom(OG_Viewport* v){
 }
 
 int OG_ViewportUpdatePan(OG_Viewport* v){
+    if (OG.viewports.tail != v) return 1;
     if (!OG_MouseInViewport(v, false, false, true)) return 1;
     if (IsMouseButtonDown(MOUSE_MIDDLE_BUTTON)) {
         Vector2 d = GetMouseDelta();

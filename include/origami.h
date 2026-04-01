@@ -208,6 +208,7 @@ void OG_PushLogSimple(char *log);
 void OG_ResizeViewport(OG_Viewport *v, int w, int h);
 void OG_SetViewportOnTop(OG_Viewport *v);
 bool OG_MouseInViewport(OG_Viewport* v, bool titleBar, bool resizeHandle, bool onlyViewport);
+float OG_GetMouseWheelMove(OG_Viewport *v);
 Vector2 OG_GetMouseOverlayPosition(OG_Viewport* v);
 Vector2 OG_GetMouseViewportPosition(OG_Viewport* v);
 bool OG_IsMouseButtonPressed(int button);
