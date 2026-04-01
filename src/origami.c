@@ -942,11 +942,13 @@ Vector2 OG_GetMouseViewportPosition(OG_Viewport* v){
 
 bool OG_IsMouseButtonPressed(int button){
     if (OG.viewportJustSwitched) return false;
+    if (OG.state != OG_STATE_IDLE) return false;
     return IsMouseButtonPressed(button);
 }
 
 bool OG_IsMouseButtonReleased(int button){
     if (OG.viewportJustSwitched) return false;
+    if (OG.state != OG_STATE_IDLE) return false;
     return IsMouseButtonReleased(button);
 }
 
