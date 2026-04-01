@@ -129,6 +129,12 @@ static void Update(OG_Viewport *v){
 
         verticalOffset += OG.defaultFontSize+2;
     }
+
+    // a little workaround to force 
+    // the update of the scrollbar :)
+    // *go to TopPanel*
+    v->renderAlways = false;
+    v->updateAlways = false;
 }
 
 static const char **GetCmds(){
@@ -149,6 +155,23 @@ static void RenderOverlay(OG_Viewport *v){
         verticalOffset += OG.defaultFontSize+2;
     }
 
+    // RENDER SCROLL BAR
+    if (contentSize > v->size.height*-1){
+        DrawRectangle( //bg
+            v->size.width - (OG.defaultFontSize+2), 0,
+            (OG.defaultFontSize+2), v->size.height*-1,
+            *(Color*) &v->ctx.style->colors[MU_COLOR_SCROLLBASE]
+        );
+
+        float scrollPercent = scroll*-1/contentSize;
+        DrawRectangle( //thumb
+            v->size.width - (OG.defaultFontSize+2), v->size.height*-1*scrollPercent, 
+            (OG.defaultFontSize+2), 
+            (v->size.height*-1/contentSize)*(v->size.height*-1),
+            *(Color*) &v->ctx.style->colors[MU_COLOR_SCROLLTHUMB]
+        );
+    }
+
 }
 
 static void TopPanel(OG_Viewport *v, mu_Context *ctx){
@@ -161,6 +184,12 @@ static void TopPanel(OG_Viewport *v, mu_Context *ctx){
             FreeFileList(pwdFiles);
             pwdFiles = InitFileList(".");
         }
+
+        // a little workaround to force 
+        // the update of the scrollbar :)
+        // *go to Update*
+        v->renderAlways = true;
+        v->updateAlways = true;
     }
 }
 
