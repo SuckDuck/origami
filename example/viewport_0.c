@@ -63,7 +63,10 @@ static void RightPanel(OG_Viewport *v, mu_Context *mu){
     mu_layout_row(mu, 1, (const int[]){-1}, hs);
     char *words[] = {"WAVE","SAND", "HILL", "ROAD", "PATH"};
     for (int i=0; i<5; i++)
-        if (mu_button(mu, words[i]))  OG_PushLog("%s", words[i]);
+        if (mu_button(mu, words[i])){
+            OG_OpenFileDialog(NULL, OG_FD_MODE_SELECT_FILE);
+            OG_PushLog("%s", words[i]);
+        }
 }
 
 static void LeftPanel(OG_Viewport *v, mu_Context *mu){

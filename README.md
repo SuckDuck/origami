@@ -16,6 +16,7 @@ Features:
 * Per-viewport argc/argv-style command interface  
 * On-screen logging support  
 * Callback-based API (update, render, UI, etc.)  
+* Built-in file dialog
 
 ## Build
 

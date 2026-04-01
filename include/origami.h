@@ -66,6 +66,10 @@
 #define OG_TEXT_C CLITERAL(Color){200,200,200,255}
 #endif
 
+#ifndef OG_HIGHLIGHT_C
+#define OG_HIGHLIGHT_C CLITERAL(Color){  0,121,241,255}
+#endif
+
 #ifndef OG_VIEWPORT_OUTLINE_C
 #define OG_VIEWPORT_OUTLINE_C OG_BG_C
 #endif
@@ -92,6 +96,7 @@
 
 #include <raylib.h>
 #include "microui.h"
+#include "origami_filedialog.h"
 
 typedef struct OG_Panel{
     int size;
@@ -211,8 +216,8 @@ bool OG_MouseInViewport(OG_Viewport* v, bool titleBar, bool resizeHandle, bool o
 float OG_GetMouseWheelMove(OG_Viewport *v);
 Vector2 OG_GetMouseOverlayPosition(OG_Viewport* v);
 Vector2 OG_GetMouseViewportPosition(OG_Viewport* v);
-bool OG_IsMouseButtonPressed(int button);
-bool OG_IsMouseButtonReleased(int button);
+bool OG_IsMouseButtonPressed(OG_Viewport* v, int button);
+bool OG_IsMouseButtonReleased(OG_Viewport* v, int button);
 void OG_ViewportUpdateZoom(OG_Viewport* v);
 int OG_ViewportUpdatePan(OG_Viewport* v);
 void OG_ToggleViewport(OG_Viewport *v);
@@ -221,7 +226,7 @@ void OG_OpenViewportByName(char *name);
 void OG_CloseViewportByName(char *name);
 void OG_ChangeCursor(MouseCursor c);
 
-void OG_InitViewport(char* title, 
+OG_Viewport *OG_InitViewport(char* title, 
                     Rectangle rect,
                     float minZoom, float maxZoom,
                     OG_PanelsDimensions panelsDimensions,

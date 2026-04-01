@@ -11,6 +11,7 @@
 #include "microui.h"
 
 OG_Context OG;
+extern void OG_FileDialog();
 
 /* <== Utils ===================================================> */
 
@@ -940,15 +941,17 @@ Vector2 OG_GetMouseViewportPosition(OG_Viewport* v){
     };
 }
 
-bool OG_IsMouseButtonPressed(int button){
+bool OG_IsMouseButtonPressed(OG_Viewport *v, int button){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
+    if (OG.modalViewport && v != OG.modalViewport) return false;
     return IsMouseButtonPressed(button);
 }
 
-bool OG_IsMouseButtonReleased(int button){
+bool OG_IsMouseButtonReleased(OG_Viewport *v, int button){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
+    if (OG.modalViewport && v != OG.modalViewport) return false;
     return IsMouseButtonReleased(button);
 }
 
@@ -1035,7 +1038,7 @@ void OG_ChangeCursor(MouseCursor c){
     OG.nextCursor = c;
 }
 
-void OG_InitViewport(char* title, 
+OG_Viewport *OG_InitViewport(char* title, 
                     Rectangle rect,
                     float minZoom, float maxZoom,
                     OG_PanelsDimensions panelsDimensions,
@@ -1135,6 +1138,8 @@ void OG_InitViewport(char* title,
 }
 
 int OG_Init(char* title, int fps){
+    OG_FileDialog();
+    
     //Raylib init
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(100, 100, title); // width and height cannot be 0 because of wasm
