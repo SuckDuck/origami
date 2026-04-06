@@ -23,6 +23,7 @@ static const char *commands[] = {
     NULL
 };
 
+static OG_Viewport *this;
 static FileList pwdFiles;
 static FileEntrie *selectedFile;
 static char filename[PATH_MAX];
@@ -70,6 +71,7 @@ static void FreeFileList(FileList fl){
 
 static void Init(OG_Viewport *v){
     pwdFiles = InitFileList(".");
+    this = v;
 }
 
 static void Update(OG_Viewport *v){
@@ -271,9 +273,10 @@ void OG_FileDialog(){
     v->topPanel.size = 38;
 }
 
-void OG_OpenFileDialog(bool (*ok_callback)(char*), OG_FileDialogMode mode){
+void OG_OpenFileDialog(bool (*ok_callback)(char*), OG_FileDialogMode mode, char *msg){
     Ok = ok_callback;
     currentMode = mode;
     selectedFile = NULL;
+    this->header = msg;
     OG_ToggleViewportByName("FileDialog");
 }

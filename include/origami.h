@@ -104,7 +104,8 @@ typedef struct OG_Panel{
 } OG_Panel;
 
 typedef struct OG_Viewport{
-    char* title;
+    char *title;
+    char *header;
     Rectangle size;
     Vector2 pos;
     mu_Context ctx;

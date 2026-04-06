@@ -287,7 +287,7 @@ static void DrawViewport(OG_Viewport *v){
     
     DrawTextEx(
         OG.defaultFont, 
-        v->title, 
+        v->header ? v->header : v->title, 
         (Vector2){ v->pos.x+OG_VIEWPORT_OUTLINE_T, v->pos.y+OG_VIEWPORT_OUTLINE_T }, 
         OG_VIEWPORT_TITLE_H, 
         1, 

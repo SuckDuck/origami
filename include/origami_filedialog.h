@@ -8,6 +8,6 @@ typedef enum {
     OG_FD_MODE_SELECT_DIR
 } OG_FileDialogMode;
 
-void OG_OpenFileDialog(bool (*ok_callback)(char*), OG_FileDialogMode mode);
+void OG_OpenFileDialog(bool (*ok_callback)(char*), OG_FileDialogMode mode, char *msg);
 
 #endif
