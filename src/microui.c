@@ -821,8 +821,8 @@ int mu_textbox_raw(mu_Context *ctx, char *buf, int bufsz, mu_Id id, mu_Rect r,
 }
 
 
-static int number_textbox(mu_Context *ctx, mu_Real *value, mu_Rect r, mu_Id id) {
-  if (ctx->mouse_pressed == MU_MOUSE_LEFT && ctx->key_down & MU_KEY_SHIFT &&
+static int number_textbox(mu_Context *ctx, mu_Real *value, mu_Rect r, mu_Id id, int opt) {
+  if (ctx->mouse_pressed == MU_MOUSE_LEFT && (ctx->key_down & MU_KEY_SHIFT || opt & MU_OPT_KEYBOARD_ONLY) &&
       ctx->hover == id
   ) {
     ctx->number_edit = id;
@@ -860,7 +860,7 @@ int mu_slider_ex(mu_Context *ctx, mu_Real *value, mu_Real low, mu_Real high,
   mu_Rect base = mu_layout_next(ctx);
 
   /* handle text input mode */
-  if (number_textbox(ctx, &v, base, id)) { return res; }
+  if (number_textbox(ctx, &v, base, id, opt)) { return res; }
 
   /* handle normal mode */
   mu_update_control(ctx, id, base, opt);
@@ -901,7 +901,7 @@ int mu_number_ex(mu_Context *ctx, mu_Real *value, mu_Real step,
   mu_Real last = *value;
 
   /* handle text input mode */
-  if (number_textbox(ctx, value, base, id)) { return res; }
+  if (number_textbox(ctx, value, base, id, opt)) { return res; }
 
   /* handle normal mode */
   mu_update_control(ctx, id, base, opt);
