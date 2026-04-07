@@ -161,6 +161,8 @@ static void UpdateViewportUIInput(OG_Viewport *v){
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) mu_input_mousedown(&v->ctx, mousePosition.x,mousePosition.y,MU_MOUSE_LEFT);
     if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) mu_input_mouseup(&v->ctx,mousePosition.x,mousePosition.y,MU_MOUSE_LEFT);
     mu_input_scroll(&v->ctx, 0, GetMouseWheelMove()*OG_SCROLL_SPEED*-1);
+    if (IsKeyPressed(KEY_LEFT_SHIFT)) mu_input_keydown(&v->ctx, MU_KEY_SHIFT);
+    if (IsKeyReleased(KEY_LEFT_SHIFT)) mu_input_keyup(&v->ctx, MU_KEY_SHIFT); 
     if (IsKeyPressed(KEY_ENTER)) mu_input_keydown(&v->ctx, MU_KEY_RETURN);
     if (IsKeyReleased(KEY_ENTER)) mu_input_keyup(&v->ctx, MU_KEY_RETURN);    
     if (IsKeyPressed(KEY_BACKSPACE)) mu_input_keydown(&v->ctx, MU_KEY_BACKSPACE);
