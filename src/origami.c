@@ -871,6 +871,8 @@ void OG_SetViewportOnTop(OG_Viewport *v){
     v->prev = OG.viewports.tail;
     v->next = NULL;
     OG.viewports.tail = v;
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        OG.viewportJustSwitched = true;
 }
 
 // this function sucks, I can do it better
@@ -945,6 +947,7 @@ bool OG_IsMouseButtonPressed(OG_Viewport *v, int button){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
     if (OG.modalViewport && v != OG.modalViewport) return false;
+    if (v != OG.viewports.tail) return false;
     if (!OG_MouseInViewport(v, false, false, true))
         return false;
     return IsMouseButtonPressed(button);
@@ -954,6 +957,7 @@ bool OG_IsMouseButtonReleased(OG_Viewport *v, int button){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
     if (OG.modalViewport && v != OG.modalViewport) return false;
+    if (v != OG.viewports.tail) return false;
     if (!OG_MouseInViewport(v, false, false, true))
         return false;
     return IsMouseButtonReleased(button);
