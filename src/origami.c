@@ -1161,7 +1161,7 @@ int OG_Init(char* title, int fps){
     "abcdefghijklmnopqrstuvwxyz"
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     "0123456789"
-    " !\"#$%&'()*+,-./:;<=>∧⋀⌃?@[\\]^_`{|}~"
+    " !\"#$%&'()*+,-./:;<=>∧⋀⌃?@[\\]^_`{|}~θ"
     "│─└├"
     "⬅⮌←⟵↑";
 
