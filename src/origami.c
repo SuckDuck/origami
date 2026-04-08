@@ -12,6 +12,7 @@
 
 OG_Context OG;
 extern void OG_FileDialog();
+extern void OG_InputDialog();
 
 /* <== Utils ===================================================> */
 
@@ -68,7 +69,7 @@ static void GetPanelsHandles(OG_Viewport *v, Rectangle *L, Rectangle *R, Rectang
     if (v->LeftPanel && L){
         *L = (Rectangle){
             v->pos.x + v->leftPanel.size - OG_VIEWPORT_PANEL_HANDLE_S,
-            v->pos.y + OG_VIEWPORT_TITLE_H,
+            v->pos.y + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H),
             OG_VIEWPORT_PANEL_HANDLE_S*2,
             (v->size.height*-1)+v->topPanel.size+v->bottomPanel.size
         };
@@ -77,7 +78,7 @@ static void GetPanelsHandles(OG_Viewport *v, Rectangle *L, Rectangle *R, Rectang
     if (v->RightPanel && R){
         *R = (Rectangle){
             v->pos.x + v->leftPanel.size + v->size.width - OG_VIEWPORT_PANEL_HANDLE_S,
-            v->pos.y + OG_VIEWPORT_TITLE_H,
+            v->pos.y + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H),
             OG_VIEWPORT_PANEL_HANDLE_S*2,
             (v->size.height*-1)+v->topPanel.size+v->bottomPanel.size
         };
@@ -86,7 +87,7 @@ static void GetPanelsHandles(OG_Viewport *v, Rectangle *L, Rectangle *R, Rectang
     if (v->TopPanel && T){
         *T = (Rectangle){
             v->pos.x + v->leftPanel.size,
-            v->pos.y + OG_VIEWPORT_TITLE_H + v->topPanel.size - OG_VIEWPORT_PANEL_HANDLE_S,
+            v->pos.y + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + v->topPanel.size - OG_VIEWPORT_PANEL_HANDLE_S,
             v->size.width,
             OG_VIEWPORT_PANEL_HANDLE_S*2
         };
@@ -95,7 +96,7 @@ static void GetPanelsHandles(OG_Viewport *v, Rectangle *L, Rectangle *R, Rectang
     if (v->BottomPanel && B){
         *B = (Rectangle){
             v->pos.x + v->leftPanel.size,
-            v->pos.y + OG_VIEWPORT_TITLE_H + v->topPanel.size + (v->size.height*-1) - OG_VIEWPORT_PANEL_HANDLE_S,
+            v->pos.y + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + v->topPanel.size + (v->size.height*-1) - OG_VIEWPORT_PANEL_HANDLE_S,
             v->size.width,
             OG_VIEWPORT_PANEL_HANDLE_S*2
         };
@@ -191,7 +192,7 @@ static void ProcessViewportUI(OG_Viewport *v){
     if (v->RightPanel != NULL){
         mu_Rect rect = mu_rect(
             v->pos.x+v->size.width + v->leftPanel.size + 2, 
-            v->pos.y+OG_VIEWPORT_TITLE_H, 
+            v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H), 
             v->rightPanel.size-1, 
             (v->size.height*-1)+v->topPanel.size+v->bottomPanel.size);
 
@@ -205,7 +206,7 @@ static void ProcessViewportUI(OG_Viewport *v){
     if (v->LeftPanel != NULL){
         mu_Rect rect = mu_rect(
             v->pos.x, 
-            v->pos.y+OG_VIEWPORT_TITLE_H, 
+            v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H), 
             v->leftPanel.size, 
             (v->size.height*-1)+v->topPanel.size+v->bottomPanel.size );
 
@@ -219,7 +220,7 @@ static void ProcessViewportUI(OG_Viewport *v){
     if (v->TopPanel != NULL){
         mu_Rect rect = mu_rect(
             v->pos.x + v->leftPanel.size+1, 
-            v->pos.y+OG_VIEWPORT_TITLE_H-1, 
+            v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)-1, 
             v->size.width, 
             v->topPanel.size );
 
@@ -233,7 +234,7 @@ static void ProcessViewportUI(OG_Viewport *v){
     if (v->BottomPanel != NULL){
         mu_Rect rect = mu_rect(
             v->pos.x + v->leftPanel.size+1, 
-            v->pos.y + (v->size.height*-1) + OG_VIEWPORT_TITLE_H + v->topPanel.size +1, 
+            v->pos.y + (v->size.height*-1) + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + v->topPanel.size +1, 
             v->size.width, 
             v->bottomPanel.size-1 );
 
@@ -263,7 +264,7 @@ static void RenderViewport(OG_Viewport *v){
 static void DrawViewport(OG_Viewport *v){
     Vector2 pos = (Vector2){
         v->pos.x + v->leftPanel.size+1,
-        v->pos.y + OG_VIEWPORT_TITLE_H + v->topPanel.size
+        v->pos.y + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + v->topPanel.size
     };
 
     DrawTextureRec(v->renderTexture.texture,v->size,pos,WHITE);
@@ -272,7 +273,7 @@ static void DrawViewport(OG_Viewport *v){
     Rectangle border = (Rectangle){
         v->pos.x, v->pos.y,
         v->size.width+v->rightPanel.size+v->leftPanel.size + 1,
-        (v->size.height*-1) + OG_VIEWPORT_TITLE_H + v->topPanel.size + v->bottomPanel.size
+        (v->size.height*-1) + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + v->topPanel.size + v->bottomPanel.size
     };
 
     DrawRectangleLinesEx(
@@ -284,16 +285,18 @@ static void DrawViewport(OG_Viewport *v){
     DrawRectangle(
         v->pos.x,v->pos.y, 
         v->size.width + v->rightPanel.size + v->leftPanel.size, 
-        OG_VIEWPORT_TITLE_H, 
+        (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H), 
         v->isModal ? OG_MODAL_VIEWPORT_C : OG_VIEWPORT_TITLE_C );
     
-    DrawTextEx(
-        OG.defaultFont, 
-        v->header ? v->header : v->title, 
-        (Vector2){ v->pos.x+OG_VIEWPORT_OUTLINE_T, v->pos.y+OG_VIEWPORT_OUTLINE_T }, 
-        OG_VIEWPORT_TITLE_H, 
-        1, 
-        OG_TEXT_C );
+    if (!v->noTitleBar){
+        DrawTextEx(
+            OG.defaultFont, 
+            v->header ? v->header : v->title, 
+            (Vector2){ v->pos.x+OG_VIEWPORT_OUTLINE_T, v->pos.y+OG_VIEWPORT_OUTLINE_T }, 
+            (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H), 
+            1, 
+            OG_TEXT_C );
+    }
 
     // DRAW RESIZE VIEWPORT GUIDELINE
     if (OG.state == OG_STATE_RESIZING_VIEWPORT && OG.targetViewport == v){
@@ -308,7 +311,7 @@ static void DrawViewport(OG_Viewport *v){
         float minW = OG_VIEWPORT_MIN_W + (v->LeftPanel ? v->leftPanel.size:0) + (v->RightPanel ? v->rightPanel.size:0);
         if (rect.width < minW) rect.width = minW;
             
-        float minH = OG_VIEWPORT_MIN_H + OG_VIEWPORT_TITLE_H + (v->TopPanel ? v->topPanel.size:0) + (v->BottomPanel ? v->bottomPanel.size:0);
+        float minH = OG_VIEWPORT_MIN_H + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + (v->TopPanel ? v->topPanel.size:0) + (v->BottomPanel ? v->bottomPanel.size:0);
         if (rect.height < minH) rect.height = minH;
         
         DrawRectangleLinesEx(
@@ -322,7 +325,7 @@ static void DrawViewport(OG_Viewport *v){
     if (OG.state == OG_STATE_RESIZING_PANEL && OG.targetViewport == v){
         Vector2 mousePos = GetMousePosition();
         float w = v->size.width + (v->RightPanel ? v->rightPanel.size:0) + (v->LeftPanel ? v->leftPanel.size:0);
-        float h = (v->size.height*-1) + OG_VIEWPORT_TITLE_H + (v->TopPanel ? v->topPanel.size:0) + (v->BottomPanel ? v->bottomPanel.size:0);
+        float h = (v->size.height*-1) + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + (v->TopPanel ? v->topPanel.size:0) + (v->BottomPanel ? v->bottomPanel.size:0);
 
         switch (OG.targetPanelType){
             case OG_RIGHT_PANEL:
@@ -346,8 +349,8 @@ static void DrawViewport(OG_Viewport *v){
             
             case OG_TOP_PANEL:
                 DrawLineEx(
-                    (Vector2){v->pos.x + (v->LeftPanel ? v->leftPanel.size:0), v->pos.y + OG_VIEWPORT_TITLE_H + OG.targetPanelSizePreview},
-                    (Vector2){v->pos.x + (v->LeftPanel ? v->leftPanel.size:0) + v->size.width, v->pos.y + OG_VIEWPORT_TITLE_H + OG.targetPanelSizePreview},
+                    (Vector2){v->pos.x + (v->LeftPanel ? v->leftPanel.size:0), v->pos.y + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + OG.targetPanelSizePreview},
+                    (Vector2){v->pos.x + (v->LeftPanel ? v->leftPanel.size:0) + v->size.width, v->pos.y + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + OG.targetPanelSizePreview},
                     OG_VIEWPORT_OUTLINE_T, 
                     InvertColor(OG_BG_C)
                 );
@@ -355,8 +358,8 @@ static void DrawViewport(OG_Viewport *v){
 
             case OG_BOTTOM_PANEL:
                 DrawLineEx(
-                    (Vector2){v->pos.x + (v->LeftPanel ? v->leftPanel.size:0), v->pos.y + OG_VIEWPORT_TITLE_H + (v->TopPanel ? v->topPanel.size:0) + (v->size.height*-1) + (v->BottomPanel ? v->bottomPanel.size:0) - OG.targetPanelSizePreview},
-                    (Vector2){v->pos.x + (v->LeftPanel ? v->leftPanel.size:0) + v->size.width, v->pos.y + OG_VIEWPORT_TITLE_H + (v->TopPanel ? v->topPanel.size:0) + (v->size.height*-1) + (v->BottomPanel ? v->bottomPanel.size:0) - OG.targetPanelSizePreview},
+                    (Vector2){v->pos.x + (v->LeftPanel ? v->leftPanel.size:0), v->pos.y + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + (v->TopPanel ? v->topPanel.size:0) + (v->size.height*-1) + (v->BottomPanel ? v->bottomPanel.size:0) - OG.targetPanelSizePreview},
+                    (Vector2){v->pos.x + (v->LeftPanel ? v->leftPanel.size:0) + v->size.width, v->pos.y + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + (v->TopPanel ? v->topPanel.size:0) + (v->size.height*-1) + (v->BottomPanel ? v->bottomPanel.size:0) - OG.targetPanelSizePreview},
                     OG_VIEWPORT_OUTLINE_T, 
                     InvertColor(OG_BG_C)
                 );
@@ -584,7 +587,7 @@ static void IdleState(){
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
             OG.targetPanelSize = &v->topPanel.size;
             OG.targetPanelType = OG_TOP_PANEL;
-            OG.grabOffset = (Vector2){0,v->pos.y+OG_VIEWPORT_TITLE_H};
+            OG.grabOffset = (Vector2){0,v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)};
             OG.state = OG_STATE_RESIZING_PANEL;
         }
     }
@@ -594,13 +597,13 @@ static void IdleState(){
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
             OG.targetPanelSize = &v->bottomPanel.size;
             OG.targetPanelType = OG_BOTTOM_PANEL;
-            OG.grabOffset = (Vector2){0,v->pos.y + OG_VIEWPORT_TITLE_H + v->topPanel.size + (v->size.height*-1) + v->bottomPanel.size};
+            OG.grabOffset = (Vector2){0,v->pos.y + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + v->topPanel.size + (v->size.height*-1) + v->bottomPanel.size};
             OG.state = OG_STATE_RESIZING_PANEL;
         }
     }
 
     // VIEWPORT EXIT
-    if (OG_MouseInViewport(v, false, false, false) && IsKeyPressed(KEY_ESCAPE)){
+    if (IsKeyPressed(KEY_ESCAPE)){
         OG_ToggleViewport(v);
         return;
     }
@@ -631,13 +634,14 @@ static void MovingViewportState(){
 
 static void ResizingViewportState(){
     Vector2 mousePosition = GetMousePosition();
-    float w = mousePosition.x - OG.targetViewport->pos.x - OG.targetViewport->rightPanel.size - OG.targetViewport->leftPanel.size;
-    float h = mousePosition.y - OG.targetViewport->pos.y - OG.targetViewport->topPanel.size - OG.targetViewport->bottomPanel.size - OG_VIEWPORT_TITLE_H;
+    OG_Viewport *v = OG.targetViewport;
+    float w = mousePosition.x - v->pos.x - v->rightPanel.size - v->leftPanel.size;
+    float h = mousePosition.y - v->pos.y - v->topPanel.size - v->bottomPanel.size - (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H);
     
     if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
-        OG_ResizeViewport(OG.targetViewport, w, h);
-        if (OG.targetViewport->OnResize != NULL)
-            OG.targetViewport->OnResize(OG.targetViewport);
+        OG_ResizeViewport(v, w, h);
+        if (v->OnResize != NULL)
+            v->OnResize(v);
         OG.state = OG_STATE_IDLE;
         return;
     }
@@ -886,7 +890,7 @@ bool OG_MouseInViewport(OG_Viewport* v, bool titleBar, bool resizeHandle, bool o
             v->pos.x, 
             v->pos.y, 
             v->size.width+v->rightPanel.size + v->leftPanel.size, 
-            OG_VIEWPORT_TITLE_H
+            (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)
         };
         
         if (IsPointOnRect(mousePosition, title)) return true;
@@ -896,7 +900,7 @@ bool OG_MouseInViewport(OG_Viewport* v, bool titleBar, bool resizeHandle, bool o
     if (resizeHandle){
         Rectangle corner = (Rectangle){
             v->pos.x+v->size.width+v->rightPanel.size+v->leftPanel.size-OG_VIEWPORT_CORNER_S,
-            v->pos.y+(v->size.height*-1)+v->topPanel.size+v->bottomPanel.size+OG_VIEWPORT_TITLE_H-OG_VIEWPORT_CORNER_S,
+            v->pos.y+(v->size.height*-1)+v->topPanel.size+v->bottomPanel.size+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)-OG_VIEWPORT_CORNER_S,
             OG_VIEWPORT_CORNER_S,OG_VIEWPORT_CORNER_S
         };
         if (IsPointOnRect(mousePosition, corner)) return true;
@@ -906,7 +910,7 @@ bool OG_MouseInViewport(OG_Viewport* v, bool titleBar, bool resizeHandle, bool o
     if (onlyViewport){
         Rectangle onlyViewportArea = (Rectangle){
             v->pos.x+v->leftPanel.size,
-            v->pos.y+OG_VIEWPORT_TITLE_H+v->topPanel.size,
+            v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)+v->topPanel.size,
             v->size.width,
             (v->size.height*-1)
         };
@@ -917,7 +921,7 @@ bool OG_MouseInViewport(OG_Viewport* v, bool titleBar, bool resizeHandle, bool o
     Rectangle viewportArea = (Rectangle){
         v->pos.x,v->pos.y,
         v->size.width + v->rightPanel.size + v->leftPanel.size,
-        (v->size.height*-1) + v->topPanel.size + v->bottomPanel.size + OG_VIEWPORT_TITLE_H
+        (v->size.height*-1) + v->topPanel.size + v->bottomPanel.size + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)
     };
     if (IsPointOnRect(mousePosition, viewportArea)) return true;
     return false;
@@ -933,7 +937,7 @@ Vector2 OG_GetMouseOverlayPosition(OG_Viewport* v){
     Vector2 mousePosition = GetMousePosition();
     return (Vector2){
         mousePosition.x - (v->pos.x + OG_VIEWPORT_OUTLINE_T + v->leftPanel.size),
-        mousePosition.y - (v->pos.y + OG_VIEWPORT_TITLE_H + v->topPanel.size)
+        mousePosition.y - (v->pos.y + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + v->topPanel.size)
     };
 }
 
@@ -941,7 +945,7 @@ Vector2 OG_GetMouseViewportPosition(OG_Viewport* v){
     Vector2 mousePosition = GetMousePosition();
     return (Vector2){
         (mousePosition.x - (v->pos.x+v->leftPanel.size) - v->camera.offset.x)/v->camera.zoom + v->camera.target.x,
-        (mousePosition.y - (v->pos.y+v->topPanel.size+OG_VIEWPORT_TITLE_H) - v->camera.offset.y)/v->camera.zoom + v->camera.target.y
+        (mousePosition.y - (v->pos.y+v->topPanel.size+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)) - v->camera.offset.y)/v->camera.zoom + v->camera.target.y
     };
 }
 
@@ -1156,6 +1160,7 @@ OG_Viewport *OG_InitViewport(char* title,
 
 int OG_Init(char* title, int fps){
     OG_FileDialog();
+    OG_InputDialog();
     
     //Raylib init
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);

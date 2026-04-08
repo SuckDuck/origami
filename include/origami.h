@@ -96,7 +96,7 @@
 
 #include <raylib.h>
 #include "microui.h"
-#include "origami_filedialog.h"
+#include "origami_tools.h"
 
 typedef struct OG_Panel{
     int size;
@@ -120,6 +120,7 @@ typedef struct OG_Viewport{
     bool resizable;
     bool disableOffsetUpdate;
     bool isModal;
+    bool noTitleBar;
     bool updateAlways;
     bool renderAlways;
 
