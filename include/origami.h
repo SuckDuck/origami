@@ -225,7 +225,7 @@ void OG_ToggleViewport(OG_Viewport *v);
 void OG_ToggleViewportByName(char *name);
 void OG_OpenViewportByName(char *name);
 void OG_CloseViewportByName(char *name);
-void OG_ChangeCursor(MouseCursor c);
+void OG_ChangeCursor(OG_Viewport *v, MouseCursor c);
 
 OG_Viewport *OG_InitViewport(char* title, 
                     Rectangle rect,

@@ -483,7 +483,7 @@ static void IdleState(){
         OG.viewportJustSwitched = false;
     }
 
-    OG_ChangeCursor(MOUSE_CURSOR_DEFAULT);
+    OG_ChangeCursor(NULL, MOUSE_CURSOR_DEFAULT);
 
     for (int i=0; i<5; i++){
         OG_Viewport *v = OG.viewportsToShow[i];
@@ -539,9 +539,9 @@ static void IdleState(){
     if (v->resizable && OG_MouseInViewport(v, false, true, false)){
         
         #if __linux__
-            OG_ChangeCursor(MOUSE_CURSOR_RESIZE_ALL);
+            OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_ALL);
         #else
-            OG_ChangeCursor(MOUSE_CURSOR_RESIZE_NWSE);
+            OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_NWSE);
         #endif
         
     
@@ -560,7 +560,7 @@ static void IdleState(){
     GetPanelsHandles(v, &leftPanelHandle, &rightPanelHandle, &topPanelHandle, &bottomPanelHandle);
 
     if (v->LeftPanel != NULL && v->leftPanel.resizable && IsPointOnRect(mousePosition, leftPanelHandle)){
-        OG_ChangeCursor(MOUSE_CURSOR_RESIZE_EW);
+        OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_EW);
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
             OG.targetPanelSize = &v->leftPanel.size;
             OG.targetPanelType = OG_LEFT_PANEL;
@@ -570,7 +570,7 @@ static void IdleState(){
     }
 
     else if (v->RightPanel != NULL && v->rightPanel.resizable && IsPointOnRect(mousePosition, rightPanelHandle) && !OG_MouseInViewport(v, false, true, false)){
-        OG_ChangeCursor(MOUSE_CURSOR_RESIZE_EW);
+        OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_EW);
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
             OG.targetPanelSize = &v->rightPanel.size;
             OG.targetPanelType = OG_RIGHT_PANEL;
@@ -580,7 +580,7 @@ static void IdleState(){
     }
 
     else if (v->TopPanel != NULL && v->topPanel.resizable && IsPointOnRect(mousePosition, topPanelHandle)){
-        OG_ChangeCursor(MOUSE_CURSOR_RESIZE_NS);
+        OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_NS);
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
             OG.targetPanelSize = &v->topPanel.size;
             OG.targetPanelType = OG_TOP_PANEL;
@@ -590,7 +590,7 @@ static void IdleState(){
     }
 
     else if (v->BottomPanel != NULL && v->bottomPanel.resizable && IsPointOnRect(mousePosition, bottomPanelHandle)){
-        OG_ChangeCursor(MOUSE_CURSOR_RESIZE_NS);
+        OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_NS);
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
             OG.targetPanelSize = &v->bottomPanel.size;
             OG.targetPanelType = OG_BOTTOM_PANEL;
@@ -649,7 +649,7 @@ static void ResizingPanelState(){
     switch (OG.targetPanelType){
         case OG_LEFT_PANEL:
         case OG_RIGHT_PANEL:
-            OG_ChangeCursor(MOUSE_CURSOR_RESIZE_EW);
+            OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_EW);
 
             if (OG.targetPanelType == OG_LEFT_PANEL) newSize = GetMousePosition().x - OG.grabOffset.x;
             else newSize = OG.grabOffset.x - GetMousePosition().x;
@@ -670,7 +670,7 @@ static void ResizingPanelState(){
         
         case OG_TOP_PANEL:
         case OG_BOTTOM_PANEL:
-            OG_ChangeCursor(MOUSE_CURSOR_RESIZE_NS);
+            OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_NS);
 
             if (OG.targetPanelType == OG_TOP_PANEL) newSize = GetMousePosition().y - OG.grabOffset.y;
             else newSize = OG.grabOffset.y - GetMousePosition().y;
@@ -1044,7 +1044,14 @@ void OG_CloseViewportByName(char *name){
     }
 }
 
-void OG_ChangeCursor(MouseCursor c){
+void OG_ChangeCursor(OG_Viewport *v, MouseCursor c){
+    if (v != NULL && v != OG.viewports.tail) return;
+    
+    if (v != NULL){
+        if (!OG_MouseInViewport(v, false, false, true))
+            return;
+    }
+    
     OG.nextCursor = c;
 }
 
