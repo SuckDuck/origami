@@ -868,6 +868,12 @@ void OG_ResizeViewport(OG_Viewport *v, int w, int h){
 void OG_SetViewportOnTop(OG_Viewport *v){
     OG.targetViewport = v;
     if (v == OG.viewports.tail) return;
+    if (OG.modalViewport != NULL){
+        if (OG.modalViewport != v){
+            OG_PushLog("Cant't set %s on top, a modal viewport is currently open", v->title);
+            return;    
+        }
+    }
     
     if (v->prev != NULL) v->prev->next = v->next;
     else OG.viewports.head = v->next;
