@@ -13,6 +13,7 @@
 OG_Context OG;
 extern void OG_FileDialog();
 extern void OG_InputDialog();
+extern void OG_ContextMenu();
 
 /* <== Utils ===================================================> */
 
@@ -1167,6 +1168,7 @@ OG_Viewport *OG_InitViewport(char* title,
 int OG_Init(char* title, int fps){
     OG_FileDialog();
     OG_InputDialog();
+    OG_ContextMenu();
     
     //Raylib init
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
