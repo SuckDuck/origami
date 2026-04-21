@@ -250,6 +250,8 @@ OG_Viewport *OG_InitViewport(char* title,
                     );
 
 int OG_Init(char* title, int fps);
+bool OG_UpdateFrame();
+bool OG_RenderFrame();
 bool OG_Update();
 void OG_Free();
 

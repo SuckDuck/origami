@@ -455,30 +455,6 @@ static void DrawLogs(){
     }
 }
 
-static int Render(){
-    for (OG_Viewport *v = OG.viewports.head; v != NULL; v = v->next){
-        if (v == OG.viewports.tail || v->renderAlways) RenderViewport(v);
-    }
-    
-    BeginDrawing();
-    ClearBackground(OG_BG_C);
-    
-    // FOR EACH VIEWPORT
-    for (OG_Viewport *v = OG.viewports.head; v != NULL; v = v->next){
-        if (v->hidden) continue;
-        DrawViewportUI(v);
-        DrawViewport(v);
-    }
-
-    DrawCommandBar();
-    DrawLogs();
-    if (OG.drawFps) 
-        DrawFPS(10,10);
-    EndDrawing();
-    return 0;
-}
-
-
 /* <== State Machine ===========================================> */
 
 static void IdleState(){
@@ -806,38 +782,6 @@ static void OnCommandBarState(){
     if (OG.selectedHint >= OG.hintsQ) OG.selectedHint = OG.hintsQ-1;
     if (OG.selectedHint < 0) OG.selectedHint = 0;
 }
-
-static int Update(){
-    switch (OG.state){
-        case OG_STATE_IDLE:               IdleState();              break;
-        case OG_STATE_MOVING_VIEWPORT:    MovingViewportState();    break;
-        case OG_STATE_RESIZING_VIEWPORT:  ResizingViewportState();  break;
-        case OG_STATE_RESIZING_PANEL:     ResizingPanelState();     break;
-        case OG_STATE_ON_COMMAND_BAR:     OnCommandBarState();      break;
-    }
-
-    // EXECUTE THE 'ALWAYS' LOGIC
-    for (OG_Viewport *v = OG.viewports.head; v != NULL; v = v->next){
-        if (v->updateAlways) v->Update(v);
-    }
-
-    // EXECUTE LOGS LOGIC
-    if (OG.logsQ > 0){
-        OG.logsTimer += GetFrameTime();
-        if (OG.logsTimer >= 4 /*seconds*/){
-            PopLog();
-        }
-    }
-    
-    // SET CURSOR PER FRAME
-    if (OG.nextCursor != OG.currentCursor){
-        OG.currentCursor = OG.nextCursor;
-        SetMouseCursor(OG.currentCursor);
-    }
-
-    return 0;
-}
-
 
 /* <== Public API ==============================================> */
 
@@ -1225,9 +1169,64 @@ int OG_Init(char* title, int fps){
     return 0;
 }
 
+bool OG_UpdateFrame(){
+    switch (OG.state){
+        case OG_STATE_IDLE:               IdleState();              break;
+        case OG_STATE_MOVING_VIEWPORT:    MovingViewportState();    break;
+        case OG_STATE_RESIZING_VIEWPORT:  ResizingViewportState();  break;
+        case OG_STATE_RESIZING_PANEL:     ResizingPanelState();     break;
+        case OG_STATE_ON_COMMAND_BAR:     OnCommandBarState();      break;
+    }
+
+    // EXECUTE THE 'ALWAYS' LOGIC
+    for (OG_Viewport *v = OG.viewports.head; v != NULL; v = v->next){
+        if (v->updateAlways) v->Update(v);
+    }
+
+    // EXECUTE LOGS LOGIC
+    if (OG.logsQ > 0){
+        OG.logsTimer += GetFrameTime();
+        if (OG.logsTimer >= 4 /*seconds*/){
+            PopLog();
+        }
+    }
+    
+    // SET CURSOR PER FRAME
+    if (OG.nextCursor != OG.currentCursor){
+        OG.currentCursor = OG.nextCursor;
+        SetMouseCursor(OG.currentCursor);
+    }
+
+    return WindowShouldClose();
+}
+
+bool OG_RenderFrame(){
+    for (OG_Viewport *v = OG.viewports.head; v != NULL; v = v->next){
+        if (v == OG.viewports.tail || v->renderAlways) RenderViewport(v);
+    }
+    
+    BeginDrawing();
+    ClearBackground(OG_BG_C);
+    
+    // FOR EACH VIEWPORT
+    for (OG_Viewport *v = OG.viewports.head; v != NULL; v = v->next){
+        if (v->hidden) continue;
+        DrawViewportUI(v);
+        DrawViewport(v);
+    }
+
+    DrawCommandBar();
+    DrawLogs();
+    if (OG.drawFps) 
+        DrawFPS(10,10);
+    EndDrawing();
+
+    return WindowShouldClose();
+}
+
 bool OG_Update(){
-    Update();
-    Render();
+    OG_UpdateFrame();
+    OG_RenderFrame();
     return WindowShouldClose();
 }
 
