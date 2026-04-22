@@ -20,6 +20,7 @@ static OG_Viewport *this;
 static char** options;
 static int optionsQ;
 static void (*callback)(int);
+static void (*callbackStr)(char*);
 
 static void Init(OG_Viewport *v){
     this = v;
@@ -37,6 +38,7 @@ static void BottomPanel(OG_Viewport *v, mu_Context *ctx){
         for (int i=0; i<optionsQ; i++){
             if (mu_button_ex(ctx, options[i], 0, 0)){
                 if (callback) callback(i);
+                else if (callbackStr) callbackStr(options[i]);
                 OG_CloseViewportByName("ContextMenu");
             }
         }
@@ -89,6 +91,7 @@ static void OpenContextMenuHelper(void (*_callback)(int), int optQ){
     optionsQ = optQ;
 
     callback = _callback;
+    callbackStr = NULL;
     this->bottomPanel.size = optQ*OPT_HEIGHT+1;
     if (this->bottomPanel.size > MAX_HEIGHT)
         this->bottomPanel.size = MAX_HEIGHT;
@@ -115,4 +118,29 @@ void OG_OpenContextMenuV2(void (*_callback)(int), int optQ, char **opts){
         options[i] = calloc(strlen(opt)+1, sizeof(char));
         strcpy(options[i], opt);
     }
+}
+
+void OG_OpenContextMenuV3(void (*_callback)(char*), int optQ, char **opts){
+    
+    // discard empty options
+    int Q=0;
+    for (int i = 0; i < optQ; i++) {
+        char *opt = opts[i];
+        if (opt && strcmp(opt, "") != 0)
+            Q++;
+    }
+    
+    OpenContextMenuHelper(NULL, Q);
+    callbackStr = _callback;
+    callback = NULL;
+
+    int ii=0;
+    for (int i = 0; i < optQ; i++) {
+        char *opt = opts[i];
+        if (opt && strcmp(opt, "") != 0){
+            options[ii] = calloc(strlen(opt)+1, sizeof(char));
+            strcpy(options[ii++], opt);
+        }
+    }
+
 }
