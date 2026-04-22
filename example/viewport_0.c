@@ -5,6 +5,7 @@
 #include <string.h>
 #include "microui.h"
 #include "origami.h"
+#include "origami_tools.h"
 
 static const char *commands[] = {
     "ADD",
@@ -64,7 +65,7 @@ static void RightPanel(OG_Viewport *v, mu_Context *mu){
     char *words[] = {"WAVE","SAND", "HILL", "ROAD", "PATH"};
     for (int i=0; i<5; i++)
         if (mu_button(mu, words[i])){
-            OG_OpenFileDialog(NULL, OG_FD_MODE_SELECT_FILE);
+            OG_OpenFileDialog(NULL, OG_FD_MODE_SELECT_FILE, NULL);
             OG_PushLog("%s", words[i]);
         }
 }

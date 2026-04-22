@@ -113,6 +113,31 @@ static Color InvertColor(Color color){
     };
 }
 
+static Rectangle GetViewportRect(OG_Viewport *v){
+    Rectangle viewportArea = (Rectangle){
+        v->pos.x,v->pos.y,
+        v->size.width + v->rightPanel.size + v->leftPanel.size,
+        (v->size.height*-1) + v->topPanel.size + v->bottomPanel.size + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)
+    };
+
+    return viewportArea;
+}
+
+static bool IsViewportFullyVisible(OG_Viewport *v){
+    if (!v) return false;
+    if (v->hidden) return false;
+
+    Rectangle vRect = GetViewportRect(v);
+    for (OG_Viewport *vv = v->next; vv != NULL; vv = vv->next){ // for each viewport on front v
+        if (vv->hidden) continue;
+        Rectangle vvRect = GetViewportRect(vv);
+        if (CheckCollisionRecs(vRect, vvRect))
+            return false;
+    }
+
+    return true;
+}
+
 /* <== Logs Section ============================================> */
 
 void OG_PushLog(char *format, ...){
@@ -494,8 +519,8 @@ static void IdleState(){
     if (!OG_MouseInViewport(OG.viewports.tail,false,false,false) && !OG.viewports.tail->isModal ){
         for (OG_Viewport *v = OG.viewports.tail->prev; v != NULL; v = v->prev){ // for each viewport except the last-one
             if (v->hidden || !OG_MouseInViewport(v, false, false,false)) continue;
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){    
-                OG.viewportJustSwitched = true;
+            if (IsViewportFullyVisible(v) || IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) OG.viewportJustSwitched = true;
                 OG_SetViewportOnTop(v);
                 break;
             }
@@ -869,11 +894,7 @@ bool OG_MouseInViewport(OG_Viewport* v, bool titleBar, bool resizeHandle, bool o
         return false;
     }
 
-    Rectangle viewportArea = (Rectangle){
-        v->pos.x,v->pos.y,
-        v->size.width + v->rightPanel.size + v->leftPanel.size,
-        (v->size.height*-1) + v->topPanel.size + v->bottomPanel.size + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)
-    };
+    Rectangle viewportArea = GetViewportRect(v);
     if (IsPointOnRect(mousePosition, viewportArea)) return true;
     return false;
 }
