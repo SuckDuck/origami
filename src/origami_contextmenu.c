@@ -7,6 +7,7 @@
 #include <raylib.h>
 #include "microui.h"
 #include "origami.h"
+#include "origami_tools.h"
 
 #define OPT_HEIGHT 20
 #define MAX_HEIGHT 250
@@ -72,7 +73,7 @@ void OG_ContextMenu(){
     v->noTitleBar = true;
 }
 
-void OG_OpenContextMenu(void (*_callback)(int), int optQ, ...){
+static void OpenContextMenuHelper(void (*_callback)(int), int optQ){
     Vector2 mousePos = GetMousePosition();
     this->pos = mousePos;
     OG_ToggleViewportByName("ContextMenu");
@@ -87,6 +88,15 @@ void OG_OpenContextMenu(void (*_callback)(int), int optQ, ...){
     options = calloc(optQ, sizeof(char*));
     optionsQ = optQ;
 
+    callback = _callback;
+    this->bottomPanel.size = optQ*OPT_HEIGHT+1;
+    if (this->bottomPanel.size > MAX_HEIGHT)
+        this->bottomPanel.size = MAX_HEIGHT;
+}
+
+void OG_OpenContextMenu(void (*_callback)(int), int optQ, ...){
+    OpenContextMenuHelper(_callback, optQ);
+
     va_list args;
     va_start(args, optQ);
     for (int i = 0; i < optQ; i++) {
@@ -96,8 +106,13 @@ void OG_OpenContextMenu(void (*_callback)(int), int optQ, ...){
     }
 
     va_end(args);
-    callback = _callback;
-    this->bottomPanel.size = optQ*OPT_HEIGHT+1;
-    if (this->bottomPanel.size > MAX_HEIGHT)
-        this->bottomPanel.size = MAX_HEIGHT;
+}
+
+void OG_OpenContextMenuV2(void (*_callback)(int), int optQ, char **opts){
+    OpenContextMenuHelper(_callback, optQ);
+    for (int i = 0; i < optQ; i++) {
+        char *opt = opts[i];
+        options[i] = calloc(strlen(opt)+1, sizeof(char));
+        strcpy(options[i], opt);
+    }
 }
