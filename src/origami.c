@@ -939,6 +939,19 @@ int OG_ViewportUpdatePan(OG_Viewport* v){
     return 1;
 }
 
+OG_Viewport *OG_GetViewportByName(char *name){
+    if (!name) return NULL;
+
+    OG_Viewport *v = OG.viewports.head;
+    while (v != NULL) {
+        if (v->title && strcmp(v->title, name) == 0)
+            return v;
+        v = v->next;
+    }
+
+    return NULL;
+}
+
 void OG_ToggleViewport(OG_Viewport *v){
     if (OG.modalViewport != NULL){
         if (v != OG.modalViewport && !v->isModal){

@@ -222,6 +222,7 @@ bool OG_IsMouseButtonPressed(OG_Viewport* v, int button);
 bool OG_IsMouseButtonReleased(OG_Viewport* v, int button);
 void OG_ViewportUpdateZoom(OG_Viewport* v);
 int OG_ViewportUpdatePan(OG_Viewport* v);
+OG_Viewport *OG_GetViewportByName(char *name);
 void OG_ToggleViewport(OG_Viewport *v);
 void OG_ToggleViewportByName(char *name);
 void OG_OpenViewportByName(char *name);
