@@ -941,7 +941,7 @@ int OG_ViewportUpdatePan(OG_Viewport* v){
 
 void OG_ToggleViewport(OG_Viewport *v){
     if (OG.modalViewport != NULL){
-        if (v != OG.modalViewport){
+        if (v != OG.modalViewport && !v->isModal){
             OG_PushLog("Cant't toggle %s, a modal viewport is currently open", v->title);
             return;
         }
