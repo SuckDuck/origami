@@ -944,7 +944,9 @@ bool OG_IsMouseButtonReleased(OG_Viewport *v, int button){
 void OG_ViewportUpdateZoom(OG_Viewport* v){
     if (OG.viewports.tail != v) return;
     if (!OG_MouseInViewport(v, false, false, true)) return;
-    v->camera.zoom += GetMouseWheelMove() * OG_ZOOM_SPEED;
+    float wheel = GetMouseWheelMove();
+    float factor = 1.0f + wheel * OG_ZOOM_SPEED;
+    v->camera.zoom *= factor;
     if (v->camera.zoom < v->minZoom) v->camera.zoom = v->minZoom;
     if (v->camera.zoom > v->maxZoom) v->camera.zoom = v->maxZoom;
 }
