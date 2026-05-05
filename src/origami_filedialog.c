@@ -263,6 +263,7 @@ void OG_FileDialog(){
         NULL, 
         NULL, 
         NULL, 
+        NULL, 
         &TopPanel, 
         &BottomPanel, 
         &GetCmds, 

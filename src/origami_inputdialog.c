@@ -56,6 +56,7 @@ void OG_InputDialog(){
         NULL, 
         NULL, 
         NULL, 
+        NULL, 
         &TopPanel, 
         NULL, 
         &GetCmds, 

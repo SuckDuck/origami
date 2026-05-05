@@ -141,6 +141,7 @@ typedef struct OG_Viewport{
     void (*RenderUnderlay)(struct OG_Viewport*);
     void (*Render)(struct OG_Viewport*);
     void (*RenderOverlay)(struct OG_Viewport*);
+    void (*RenderOnScreen)(struct OG_Viewport*, Vector2 viewportPos);
 
     struct OG_Viewport *prev;
     struct OG_Viewport *next;
@@ -242,6 +243,7 @@ OG_Viewport *OG_InitViewport(char* title,
                     void (*Render)(OG_Viewport*), 
                     void (*RenderOverlay)(OG_Viewport*),
                     void (*RenderUnderlay)(OG_Viewport*),
+                    void (*RenderOnScreen)(OG_Viewport*, Vector2),
                     void (*RightPanel)(OG_Viewport*, mu_Context*), 
                     void (*LeftPanel)(OG_Viewport*, mu_Context*), 
                     void (*TopPanel)(OG_Viewport*, mu_Context*), 

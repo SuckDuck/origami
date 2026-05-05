@@ -131,6 +131,7 @@ void Viewport0(){
         &Render, 
         &RenderOverlay, 
         &RenderUnderlay, 
+        NULL, 
         &RightPanel, 
         &LeftPanel, 
         &TopPanel, 

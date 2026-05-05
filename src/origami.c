@@ -394,6 +394,9 @@ static void DrawViewport(OG_Viewport *v){
         }
     }
 
+    if (v->RenderOnScreen)
+        v->RenderOnScreen(v, pos);
+
 }
 
 static void DrawViewportUI(OG_Viewport *v){
@@ -1065,6 +1068,7 @@ OG_Viewport *OG_InitViewport(char* title,
                     void (*Render)(OG_Viewport*), 
                     void (*RenderOverlay)(OG_Viewport*),
                     void (*RenderUnderlay)(OG_Viewport*),
+                    void (*RenderOnScreen)(OG_Viewport*, Vector2),
 
                     // UI Callbacks
                     void (*RightPanel)(OG_Viewport*, mu_Context*), 
@@ -1111,6 +1115,7 @@ OG_Viewport *OG_InitViewport(char* title,
     v->Render = Render;
     v->RenderOverlay = RenderOverlay;
     v->RenderUnderlay = RenderUnderlay;
+    v->RenderOnScreen = RenderOnScreen;
 
 
     // UI callbacks
