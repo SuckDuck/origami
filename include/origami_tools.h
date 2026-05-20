@@ -9,9 +9,9 @@ typedef enum {
 } OG_FileDialogMode;
 
 void OG_OpenFileDialog(bool (*ok_callback)(char*), OG_FileDialogMode mode, char *msg);
-void OG_OpenInputDialog(void (*ok_callback)(char*));
-void OG_OpenContextMenu(void (*callback)(int), int optQ, ...);
-void OG_OpenContextMenuV2(void (*_callback)(int), int optQ, char **opts);
-void OG_OpenContextMenuV3(void (*_callback)(char*), int optQ, char **opts);
+void OG_OpenInputDialog(void (*ok_callback)(char*), char *hint);
+void OG_OpenContextMenu(void (*callback)(int), char *hint, int optQ, ...);
+void OG_OpenContextMenuV2(void (*_callback)(int), char *hint, int optQ, char **opts);
+void OG_OpenContextMenuV3(void (*_callback)(char*), char *hint, int optQ, char **opts);
 
 #endif

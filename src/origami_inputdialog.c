@@ -22,6 +22,12 @@ static void Update(OG_Viewport *v){
     if (v->hidden) return;
     if (OG.viewports.tail != v) return;
     v->ctx.focus = input_id;
+
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !OG.viewportJustSwitched){
+        if (!OG_MouseInViewport(v, false, false, false)){
+            OG_CloseViewportByName("InputDialog");
+        }
+    }
 }
 
 static void TopPanel(OG_Viewport *v, mu_Context *ctx){
@@ -69,7 +75,10 @@ void OG_InputDialog(){
     v->updateAlways = true;
 }
 
-void OG_OpenInputDialog(void (*ok_callback)(char*)){
+void OG_OpenInputDialog(void (*ok_callback)(char*), char *hint){
+    this->header = hint;
+    this->noTitleBar = hint == NULL;
+    
     memset(buf, 0, 256);
     Ok = ok_callback;
     Vector2 mousePos = GetMousePosition();

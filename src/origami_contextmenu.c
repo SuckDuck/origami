@@ -30,6 +30,14 @@ static void Init(OG_Viewport *v){
 }
 
 static void Update(OG_Viewport *v){
+    if (v->hidden) return;
+    if (OG.viewports.tail != v) return;
+
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !OG.viewportJustSwitched){
+        if (!OG_MouseInViewport(v, false, false, false)){
+            OG_CloseViewportByName("ContextMenu");
+        }
+    }
 }
 
 static void BottomPanel(OG_Viewport *v, mu_Context *ctx){
@@ -73,7 +81,7 @@ void OG_ContextMenu(){
     );
 
     v->size.height = -1;
-    v->noTitleBar = true;
+    v->updateAlways = true;
 }
 
 static void OpenContextMenuHelper(void (*_callback)(int), int optQ){
@@ -96,9 +104,27 @@ static void OpenContextMenuHelper(void (*_callback)(int), int optQ){
     this->bottomPanel.size = optQ*OPT_HEIGHT+1;
     if (this->bottomPanel.size > MAX_HEIGHT)
         this->bottomPanel.size = MAX_HEIGHT;
+
+    // Force microUI update to prevent old context menu from appearing 1 frame
+    mu_begin(&this->ctx);
+    mu_Rect rect = mu_rect(
+        this->pos.x + this->leftPanel.size+1, 
+        this->pos.y + (this->size.height*-1) + (this->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + this->topPanel.size +1, 
+        this->size.width, 
+        this->bottomPanel.size-1 
+    );
+
+    mu_begin_window_ex(&this->ctx, "bottomPanel", rect, MU_OPT_NOCLOSE | MU_OPT_NOTITLE | MU_OPT_NORESIZE);
+    mu_get_current_container(&this->ctx)->rect = rect;
+    BottomPanel(this, &this->ctx);
+    mu_end_window(&this->ctx);
+    mu_end(&this->ctx);
 }
 
-void OG_OpenContextMenu(void (*_callback)(int), int optQ, ...){
+void OG_OpenContextMenu(void (*_callback)(int), char *hint, int optQ, ...){
+    this->header = hint;
+    this->noTitleBar = hint == NULL;
+    
     OpenContextMenuHelper(_callback, optQ);
 
     va_list args;
@@ -112,7 +138,10 @@ void OG_OpenContextMenu(void (*_callback)(int), int optQ, ...){
     va_end(args);
 }
 
-void OG_OpenContextMenuV2(void (*_callback)(int), int optQ, char **opts){
+void OG_OpenContextMenuV2(void (*_callback)(int), char *hint, int optQ, char **opts){
+    this->header = hint;
+    this->noTitleBar = hint == NULL;
+    
     OpenContextMenuHelper(_callback, optQ);
     for (int i = 0; i < optQ; i++) {
         char *opt = opts[i];
@@ -121,7 +150,9 @@ void OG_OpenContextMenuV2(void (*_callback)(int), int optQ, char **opts){
     }
 }
 
-void OG_OpenContextMenuV3(void (*_callback)(char*), int optQ, char **opts){
+void OG_OpenContextMenuV3(void (*_callback)(char*), char *hint, int optQ, char **opts){
+    this->header = hint;
+    this->noTitleBar = hint == NULL;
     
     // discard empty options
     int Q=0;
