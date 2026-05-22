@@ -1148,6 +1148,7 @@ OG_Viewport *OG_InitViewport(char* title,
     }
 
     OG.viewports.tail = v;
+    return v;
 }
 
 int OG_Init(char* title, int fps){

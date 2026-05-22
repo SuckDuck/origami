@@ -89,6 +89,8 @@ static void Update(OG_Viewport *v){
 }
 
 static void BottomPanel(OG_Viewport *v, mu_Context *ctx){
+    if (menusQ <= 0) return;
+    
     if (menus[menusQ-1].options){
         mu_layout_row(ctx, 1, (const int[]){-1}, OPT_HEIGHT);
         for (int i=0; i<menus[menusQ-1].optionsQ; i++){
@@ -97,6 +99,12 @@ static void BottomPanel(OG_Viewport *v, mu_Context *ctx){
                 else if (menus[menusQ-1].callbackStr) menus[menusQ-1].callbackStr(menus[menusQ-1].options[i]);
                 CloseContextMenu();
             }
+
+            if (menusQ <= 0){
+                CloseAllContextMenus();
+                return;
+            }
+        
         }
     }
 
