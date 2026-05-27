@@ -182,7 +182,7 @@ static void PopLog(){
 
 /* <== UI Section ==============================================> */
 
-static void UpdateViewportUIInput(OG_Viewport *v){
+void OG_UpdateViewportUIInput(OG_Viewport *v){
     Vector2 mousePosition = GetMousePosition();
     mu_input_mousemove(&v->ctx, mousePosition.x, mousePosition.y);
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) mu_input_mousedown(&v->ctx, mousePosition.x,mousePosition.y,MU_MOUSE_LEFT);
@@ -203,14 +203,14 @@ static void UpdateViewportUIInput(OG_Viewport *v){
     }
 }
 
-static void CleanViewportUIInput(OG_Viewport *v){
+void OG_CleanViewportUIInput(OG_Viewport *v){
     mu_input_mousemove(&v->ctx, 0, 0);
     mu_input_mouseup(&v->ctx, 0, 0, MU_MOUSE_LEFT);
     mu_input_mouseup(&v->ctx, 0, 0, MU_MOUSE_RIGHT);
     mu_input_scroll(&v->ctx, 0, 0);
 }
 
-static void ProcessViewportUI(OG_Viewport *v){
+void OG_ProcessViewportUI(OG_Viewport *v){
     mu_Context *ctx = &v->ctx;
     mu_begin(ctx);
     
@@ -499,8 +499,8 @@ static void IdleState(){
     for (int i=0; i<5; i++){
         OG_Viewport *v = OG.viewportsToShow[i];
         if (v != NULL){
-            CleanViewportUIInput(v);
-            ProcessViewportUI(v);
+            OG_CleanViewportUIInput(v);
+            OG_ProcessViewportUI(v);
             if (v->hidden) OG_ToggleViewport(v);
             else OG_SetViewportOnTop(v);
             OG.viewportsToShow[i] = NULL;
@@ -621,8 +621,8 @@ static void IdleState(){
         v->Update(v);
     }
 
-    UpdateViewportUIInput(v);
-    ProcessViewportUI(v);
+    OG_UpdateViewportUIInput(v);
+    OG_ProcessViewportUI(v);
 }
 
 static void MovingViewportState(){
@@ -630,9 +630,9 @@ static void MovingViewportState(){
     OG.targetViewport->pos = (Vector2){mousePosition.x-OG.grabOffset.x,mousePosition.y-OG.grabOffset.y};
     
     /* Weird workaround: prevents the UI position from desyncing with the viewport */
-    CleanViewportUIInput(OG.targetViewport);
-    ProcessViewportUI(OG.targetViewport);
-    ProcessViewportUI(OG.targetViewport);
+    OG_CleanViewportUIInput(OG.targetViewport);
+    OG_ProcessViewportUI(OG.targetViewport);
+    OG_ProcessViewportUI(OG.targetViewport);
 
     if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
         OG.state = OG_STATE_IDLE;
@@ -836,9 +836,9 @@ void OG_ResizeViewport(OG_Viewport *v, int w, int h){
     v->renderTexture = LoadCustomRenderTexture(v->size.width, v->size.height*-1);
     
     /* Weird workaround: prevents UI panels from jittering when resized  */
-    CleanViewportUIInput(v);
-    ProcessViewportUI(v);
-    ProcessViewportUI(v);
+    OG_CleanViewportUIInput(v);
+    OG_ProcessViewportUI(v);
+    OG_ProcessViewportUI(v);
 }
 
 void OG_SetViewportOnTop(OG_Viewport *v){

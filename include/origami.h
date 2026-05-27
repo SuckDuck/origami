@@ -212,6 +212,9 @@ typedef struct OG_Context {
 
 extern OG_Context OG;
 
+void OG_UpdateViewportUIInput(OG_Viewport *v);
+void OG_CleanViewportUIInput(OG_Viewport *v);
+void OG_ProcessViewportUI(OG_Viewport *v);
 void OG_PushLog(char *format, ...);
 void OG_PushLogSimple(char *log);
 void OG_ResizeViewport(OG_Viewport *v, int w, int h);
