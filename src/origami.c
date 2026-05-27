@@ -612,8 +612,10 @@ static void IdleState(){
 
     // VIEWPORT EXIT
     if (IsKeyPressed(KEY_ESCAPE)){
-        OG_ToggleViewport(v);
-        return;
+        if (OG_MouseInViewport(v, false, false, false)){
+            OG_ToggleViewport(v);
+            return;
+        }
     }
 
     // VIEWPORT UPDATE
