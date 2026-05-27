@@ -95,6 +95,7 @@ static void BottomPanel(OG_Viewport *v, mu_Context *ctx){
         mu_layout_row(ctx, 1, (const int[]){-1}, OPT_HEIGHT);
         for (int i=0; i<menus[menusQ-1].optionsQ; i++){
             if (mu_button_ex(ctx, menus[menusQ-1].options[i], 0, 0)){
+                OG_ToggleViewport(v);
                 if (menus[menusQ-1].callback) menus[menusQ-1].callback(i);
                 else if (menus[menusQ-1].callbackStr) menus[menusQ-1].callbackStr(menus[menusQ-1].options[i]);
                 CloseContextMenu();
