@@ -296,16 +296,19 @@ static void DrawViewport(OG_Viewport *v){
     DrawTextureRec(v->renderTexture.texture,v->size,pos,WHITE);
 
     // DRAW BORDER
-    Rectangle border = (Rectangle){
-        v->pos.x, v->pos.y,
-        v->size.width+v->rightPanel.size+v->leftPanel.size + 1,
-        (v->size.height*-1) + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + v->topPanel.size + v->bottomPanel.size
-    };
+    if (!v->noBorder){
+        Rectangle border = (Rectangle){
+            v->pos.x, v->pos.y,
+            v->size.width+v->rightPanel.size+v->leftPanel.size + 1,
+            (v->size.height*-1) + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + v->topPanel.size + v->bottomPanel.size
+        };
 
-    DrawRectangleLinesEx(
-        border,
-        OG_VIEWPORT_OUTLINE_T,
-        v->isModal ? OG_MODAL_VIEWPORT_C : (v == OG.viewports.tail ? OG_VIEWPORT_TITLE_C : OG_VIEWPORT_OUTLINE_C));
+        DrawRectangleLinesEx(
+            border,
+            OG_VIEWPORT_OUTLINE_T,
+            v->isModal ? OG_MODAL_VIEWPORT_C : (v == OG.viewports.tail ? OG_VIEWPORT_TITLE_C : OG_VIEWPORT_OUTLINE_C)
+        );
+    }
     
     // DRAW TITLEBAR
     DrawRectangle(

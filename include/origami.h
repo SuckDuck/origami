@@ -123,6 +123,7 @@ typedef struct OG_Viewport{
     bool noTitleBar;
     bool updateAlways;
     bool renderAlways;
+    bool noBorder;
 
     OG_Panel rightPanel;
     OG_Panel leftPanel;
