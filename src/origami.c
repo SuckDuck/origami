@@ -138,6 +138,18 @@ static bool IsViewportFullyVisible(OG_Viewport *v){
     return true;
 }
 
+static int GetMinWidth(OG_Viewport *v){
+    if (v->minSize.width > OG_VIEWPORT_MIN_W)
+        return v->minSize.width;
+    return OG_VIEWPORT_MIN_W;
+}
+
+static int GetMinHeight(OG_Viewport *v){
+    if (v->minSize.height > OG_VIEWPORT_MIN_H)
+        return v->minSize.height;
+    return OG_VIEWPORT_MIN_H;
+}
+
 /* <== Logs Section ============================================> */
 
 void OG_PushLog(char *format, ...){
@@ -184,38 +196,70 @@ static void PopLog(){
 
 void OG_UpdateViewportUIInput(OG_Viewport *v){
     Vector2 mousePosition = GetMousePosition();
-    mu_input_mousemove(&v->ctx, mousePosition.x, mousePosition.y);
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) mu_input_mousedown(&v->ctx, mousePosition.x,mousePosition.y,MU_MOUSE_LEFT);
-    if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) mu_input_mouseup(&v->ctx,mousePosition.x,mousePosition.y,MU_MOUSE_LEFT);
-    mu_input_scroll(&v->ctx, 0, GetMouseWheelMove()*OG_SCROLL_SPEED*-1);
-    if (IsKeyPressed(KEY_LEFT_SHIFT)) mu_input_keydown(&v->ctx, MU_KEY_SHIFT);
-    if (IsKeyReleased(KEY_LEFT_SHIFT)) mu_input_keyup(&v->ctx, MU_KEY_SHIFT); 
-    if (IsKeyPressed(KEY_ENTER)) mu_input_keydown(&v->ctx, MU_KEY_RETURN);
-    if (IsKeyReleased(KEY_ENTER)) mu_input_keyup(&v->ctx, MU_KEY_RETURN);    
-    if (IsKeyPressed(KEY_BACKSPACE)) mu_input_keydown(&v->ctx, MU_KEY_BACKSPACE);
-    if (IsKeyReleased(KEY_BACKSPACE)) mu_input_keyup(&v->ctx, MU_KEY_BACKSPACE);
+    
+    mu_Context *ctxs[] = {
+        &v->rightPanel.ctx,
+        &v->leftPanel.ctx,
+        &v->topPanel.ctx,
+        &v->bottomPanel.ctx
+    };
 
-    char pressedChar[2] = {0};
-    while (true) {
-        *pressedChar = GetCharPressed();
-        if (*pressedChar == 0) break;
-        mu_input_text(&v->ctx, pressedChar);
+    char pressedChar[32] = {0};
+    for (int i=0; i<32; i++){
+        pressedChar[i] = GetCharPressed();
+        if (pressedChar[i] == 0) 
+            break;
+    }
+
+    for (int i=0; i<4; i++){
+        mu_Context *ctx = ctxs[i];
+    
+        mu_input_mousemove(ctx, mousePosition.x, mousePosition.y);
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) mu_input_mousedown(ctx, mousePosition.x,mousePosition.y,MU_MOUSE_LEFT);
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) mu_input_mouseup(ctx,mousePosition.x,mousePosition.y,MU_MOUSE_LEFT);
+        mu_input_scroll(ctx, 0, GetMouseWheelMove()*OG_SCROLL_SPEED*-1);
+        if (IsKeyPressed(KEY_LEFT_SHIFT)) mu_input_keydown(ctx, MU_KEY_SHIFT);
+        if (IsKeyReleased(KEY_LEFT_SHIFT)) mu_input_keyup(ctx, MU_KEY_SHIFT); 
+        if (IsKeyPressed(KEY_ENTER)) mu_input_keydown(ctx, MU_KEY_RETURN);
+        if (IsKeyReleased(KEY_ENTER)) mu_input_keyup(ctx, MU_KEY_RETURN);    
+        if (IsKeyPressed(KEY_BACKSPACE)) mu_input_keydown(ctx, MU_KEY_BACKSPACE);
+        if (IsKeyReleased(KEY_BACKSPACE)) mu_input_keyup(ctx, MU_KEY_BACKSPACE);
+
+        for (int i=0; i<32; i++){
+            char p[2] = {0};
+            p[0] = pressedChar[i];
+            if (p[0] == 0) break;
+            mu_input_text(ctx, p);
+        }
+
     }
 }
 
 void OG_CleanViewportUIInput(OG_Viewport *v){
-    mu_input_mousemove(&v->ctx, 0, 0);
-    mu_input_mouseup(&v->ctx, 0, 0, MU_MOUSE_LEFT);
-    mu_input_mouseup(&v->ctx, 0, 0, MU_MOUSE_RIGHT);
-    mu_input_scroll(&v->ctx, 0, 0);
+    mu_Context *ctxs[] = {
+        &v->rightPanel.ctx,
+        &v->leftPanel.ctx,
+        &v->topPanel.ctx,
+        &v->bottomPanel.ctx
+    };
+
+    
+    for (int i=0; i<4; i++){
+        mu_Context *ctx = ctxs[i];
+        mu_input_mousemove(ctx, 0, 0);
+        mu_input_mouseup(ctx, 0, 0, MU_MOUSE_LEFT);
+        mu_input_mouseup(ctx, 0, 0, MU_MOUSE_RIGHT);
+        mu_input_scroll(ctx, 0, 0);
+    }
 }
 
 void OG_ProcessViewportUI(OG_Viewport *v){
-    mu_Context *ctx = &v->ctx;
-    mu_begin(ctx);
-    
+    mu_Context *ctx;
+
     // RIGHT PANEL
+    ctx = &v->rightPanel.ctx;
     if (v->RightPanel != NULL){
+        mu_begin(ctx);
         mu_Rect rect = mu_rect(
             v->pos.x+v->size.width + v->leftPanel.size + 2, 
             v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H), 
@@ -224,12 +268,16 @@ void OG_ProcessViewportUI(OG_Viewport *v){
 
         mu_begin_window_ex(ctx, "rightPanel", rect, MU_OPT_NOCLOSE | MU_OPT_NOTITLE | MU_OPT_NORESIZE);
         mu_get_current_container(ctx)->rect = rect;
-        v->RightPanel(v,&v->ctx);
+        v->RightPanel(v,ctx);
         mu_end_window(ctx);
+        mu_end(ctx);
     }
+    
 
     // LEFT PANEL
+    ctx = &v->leftPanel.ctx;
     if (v->LeftPanel != NULL){
+        mu_begin(ctx);
         mu_Rect rect = mu_rect(
             v->pos.x, 
             v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H), 
@@ -238,12 +286,15 @@ void OG_ProcessViewportUI(OG_Viewport *v){
 
         mu_begin_window_ex(ctx, "leftPanel", rect, MU_OPT_NOCLOSE | MU_OPT_NOTITLE | MU_OPT_NORESIZE);
         mu_get_current_container(ctx)->rect = rect;
-        v->LeftPanel(v,&v->ctx);
+        v->LeftPanel(v,ctx);
         mu_end_window(ctx);
+        mu_end(ctx);
     }
 
     // TOP PANEL
+    ctx = &v->topPanel.ctx;
     if (v->TopPanel != NULL){
+        mu_begin(ctx);
         mu_Rect rect = mu_rect(
             v->pos.x + v->leftPanel.size+1, 
             v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)-1, 
@@ -252,12 +303,16 @@ void OG_ProcessViewportUI(OG_Viewport *v){
 
         mu_begin_window_ex(ctx, "topPanel", rect, MU_OPT_NOCLOSE | MU_OPT_NOTITLE | MU_OPT_NORESIZE);
         mu_get_current_container(ctx)->rect = rect;
-        v->TopPanel(v,&v->ctx);
+        v->TopPanel(v,ctx);
         mu_end_window(ctx);
+        mu_end(ctx);
     }
+    
 
     // BOTTOM PANEL
+    ctx = &v->bottomPanel.ctx;
     if (v->BottomPanel != NULL){
+        mu_begin(ctx);
         mu_Rect rect = mu_rect(
             v->pos.x + v->leftPanel.size+1, 
             v->pos.y + (v->size.height*-1) + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + v->topPanel.size +1, 
@@ -266,11 +321,11 @@ void OG_ProcessViewportUI(OG_Viewport *v){
 
         mu_begin_window_ex(ctx, "bottomPanel", rect, MU_OPT_NOCLOSE | MU_OPT_NOTITLE | MU_OPT_NORESIZE);
         mu_get_current_container(ctx)->rect = rect;
-        v->BottomPanel(v,&v->ctx);
+        v->BottomPanel(v,ctx);
         mu_end_window(ctx);
+        mu_end(ctx);
     }
-
-    mu_end(&v->ctx);
+    
 }
 
 
@@ -337,10 +392,10 @@ static void DrawViewport(OG_Viewport *v){
             mousePos.y - v->pos.y
         };
 
-        float minW = OG_VIEWPORT_MIN_W + (v->LeftPanel ? v->leftPanel.size:0) + (v->RightPanel ? v->rightPanel.size:0);
+        float minW = GetMinWidth(v) + (v->LeftPanel ? v->leftPanel.size:0) + (v->RightPanel ? v->rightPanel.size:0);
         if (rect.width < minW) rect.width = minW;
             
-        float minH = OG_VIEWPORT_MIN_H + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + (v->TopPanel ? v->topPanel.size:0) + (v->BottomPanel ? v->bottomPanel.size:0);
+        float minH = GetMinHeight(v) + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + (v->TopPanel ? v->topPanel.size:0) + (v->BottomPanel ? v->bottomPanel.size:0);
         if (rect.height < minH) rect.height = minH;
         
         DrawRectangleLinesEx(
@@ -403,60 +458,72 @@ static void DrawViewport(OG_Viewport *v){
 }
 
 static void DrawViewportUI(OG_Viewport *v){
-    mu_Command *cmd = NULL;
-    int radius;
-    while (mu_next_command(&v->ctx, &cmd)) {
-        switch(cmd->type){
-            case MU_COMMAND_TEXT: {
-                DrawTextEx(
-                    *(Font*)(cmd->text.font), 
-                    cmd->text.str, 
-                    (Vector2){cmd->text.pos.x,cmd->text.pos.y},
-                    OG.defaultFontSize,
-                    2,
-                    *(Color*)&cmd->text.color
-                );
-                break;
-            }
+    mu_Context *ctxs[] = {
+        &v->rightPanel.ctx,
+        &v->leftPanel.ctx,
+        &v->topPanel.ctx,
+        &v->bottomPanel.ctx
+    };
+    
+    for (int i=0; i<4; i++){
+        mu_Context *ctx = ctxs[i];
+        mu_Command *cmd = NULL;
+        while (mu_next_command(ctx, &cmd)){
+            switch(cmd->type){
+                case MU_COMMAND_TEXT: {
+                    DrawTextEx(
+                        *(Font*)(cmd->text.font), 
+                        cmd->text.str, 
+                        (Vector2){cmd->text.pos.x,cmd->text.pos.y},
+                        OG.defaultFontSize,
+                        2,
+                        *(Color*)&cmd->text.color
+                    );
+                    break;
+                }
 
-            case MU_COMMAND_RECT: {
-                DrawRectangle(
-                    cmd->rect.rect.x, 
-                    cmd->rect.rect.y, 
-                    cmd->rect.rect.w, 
-                    cmd->rect.rect.h, 
-                    *(Color*)&cmd->rect.color
-                );
-                break;
-            }
+                case MU_COMMAND_RECT: {
+                    DrawRectangle(
+                        cmd->rect.rect.x, 
+                        cmd->rect.rect.y, 
+                        cmd->rect.rect.w, 
+                        cmd->rect.rect.h, 
+                        *(Color*)&cmd->rect.color
+                    );
+                    break;
+                }
 
-            case MU_COMMAND_ICON: {
-                Texture2D icons = OG.icons;
-                int iconsWidth = icons.width/OG_ICONS_Q;
-                DrawTexturePro(
-                    OG.icons,
-                    (Rectangle){iconsWidth*(cmd->icon.id-1),0,iconsWidth,icons.height}, 
-                    (Rectangle){cmd->icon.rect.x, cmd->icon.rect.y, cmd->icon.rect.w, cmd->icon.rect.h}, 
-                    (Vector2){0,0}, 
-                    0.0, 
-                    OG_TEXT_C
-                );
-                break;
-            }
-            
-            case MU_COMMAND_CLIP: {
-                mu_Rect r = cmd->clip.rect;    
-                if (r.x == 0 && r.y == 0){
-                    EndScissorMode();
+                case MU_COMMAND_ICON: {
+                    Texture2D icons = OG.icons;
+                    int iconsWidth = icons.width/OG_ICONS_Q;
+                    DrawTexturePro(
+                        OG.icons,
+                        (Rectangle){iconsWidth*(cmd->icon.id-1),0,iconsWidth,icons.height}, 
+                        (Rectangle){cmd->icon.rect.x, cmd->icon.rect.y, cmd->icon.rect.w, cmd->icon.rect.h}, 
+                        (Vector2){0,0}, 
+                        0.0, 
+                        OG_TEXT_C
+                    );
                     break;
                 }
                 
-                BeginScissorMode(r.x, r.y, r.w, r.h);
-                break;
-            }
+                case MU_COMMAND_CLIP: {
+                    mu_Rect r = cmd->clip.rect;    
+                    if (r.x == 0 && r.y == 0){
+                        EndScissorMode();
+                        break;
+                    }
+                    
+                    BeginScissorMode(r.x, r.y, r.w, r.h);
+                    break;
+                }
 
+            }
         }
+        
     }
+
+
 }
 
 static void DrawCommandBar(){
@@ -673,8 +740,8 @@ static void ResizingPanelState(){
             newViewportSize = OG.viewports.tail->size.width-delta;
             totalNewSize = newViewportSize + newSize;
 
-            if (newViewportSize < OG_VIEWPORT_MIN_W){
-                newViewportSize = OG_VIEWPORT_MIN_W;
+            if (newViewportSize < GetMinWidth(OG.viewports.tail)){
+                newViewportSize = GetMinWidth(OG.viewports.tail);
                 newSize = totalNewSize - newViewportSize;
             }
 
@@ -694,8 +761,8 @@ static void ResizingPanelState(){
             newViewportSize = (OG.viewports.tail->size.height*-1)-delta;
             totalNewSize = newViewportSize + newSize;
 
-            if (newViewportSize < OG_VIEWPORT_MIN_H){
-                newViewportSize = OG_VIEWPORT_MIN_H;
+            if (newViewportSize < GetMinHeight(OG.viewports.tail)){
+                newViewportSize = GetMinHeight(OG.viewports.tail);
                 newSize = totalNewSize - newViewportSize;
             }
 
@@ -820,12 +887,12 @@ static void OnCommandBarState(){
 
 void OG_ResizeViewport(OG_Viewport *v, int w, int h){
     if (w == -1) w = v->size.width;
-    else if (w < OG_VIEWPORT_MIN_W) w = OG_VIEWPORT_MIN_W;
+    else if (w < GetMinWidth(v)) w = GetMinWidth(v);
     if (h == -1) h = v->size.height;
-    else if (h < OG_VIEWPORT_MIN_H) h = OG_VIEWPORT_MIN_H;
+    else if (h < GetMinHeight(v)) h = GetMinHeight(v);
     
-    if (w >= OG_VIEWPORT_MIN_W) v->size.width = w;
-    if (h >= OG_VIEWPORT_MIN_H) v->size.height = h*-1;
+    if (w >= GetMinWidth(v)) v->size.width = w;
+    if (h >= GetMinHeight(v)) v->size.height = h*-1;
     
     if (!v->disableOffsetUpdate){
         v->camera.offset = (Vector2){
@@ -1090,6 +1157,7 @@ OG_Viewport *OG_InitViewport(char* title,
     // Meta
     v->title = title;
     v->size = (Rectangle){0,0,rect.width,rect.height};
+    v->minSize = (Rectangle){0,0,-1, -1};
     v->pos = (Vector2){rect.x,rect.y};
     v->minZoom = minZoom;
     v->maxZoom = maxZoom;
@@ -1196,15 +1264,24 @@ int OG_Init(char* title, int fps){
     UnloadImage(iconsImage);
 
     for (OG_Viewport *v = OG.viewports.head; v != NULL; v = v->next){
-        mu_init(&v->ctx);
-        v->ctx.text_width = text_width;
-        v->ctx.text_height = text_height;
-        v->ctx.style->title_height = OG_VIEWPORT_TITLE_H;
-        v->ctx.style->font = (void*) &(OG.defaultFont);
-        v->ctx.style->colors[MU_COLOR_WINDOWBG]  = *(mu_Color*) &OG_VIEWPORT_BG_C;
-        v->ctx.style->colors[MU_COLOR_TITLEBG]   = *(mu_Color*) &OG_VIEWPORT_TITLE_C;
-        v->ctx.style->colors[MU_COLOR_TITLETEXT] = *(mu_Color*) &OG_TEXT_C;
-        v->ctx.style->colors[MU_COLOR_BORDER]    = *(mu_Color*) &OG_VIEWPORT_OUTLINE_C;
+        mu_Context *ctxs[] = {
+            &v->rightPanel.ctx,
+            &v->leftPanel.ctx,
+            &v->topPanel.ctx,
+            &v->bottomPanel.ctx
+        };
+        
+        for (int i=0; i<4; i++){
+            mu_init(ctxs[i]);
+            ctxs[i]->text_width = text_width;
+            ctxs[i]->text_height = text_height;
+            ctxs[i]->style->title_height = OG_VIEWPORT_TITLE_H;
+            ctxs[i]->style->font = (void*) &(OG.defaultFont);
+            ctxs[i]->style->colors[MU_COLOR_WINDOWBG]  = *(mu_Color*) &OG_VIEWPORT_BG_C;
+            ctxs[i]->style->colors[MU_COLOR_TITLEBG]   = *(mu_Color*) &OG_VIEWPORT_TITLE_C;
+            ctxs[i]->style->colors[MU_COLOR_TITLETEXT] = *(mu_Color*) &OG_TEXT_C;
+            ctxs[i]->style->colors[MU_COLOR_BORDER]    = *(mu_Color*) &OG_VIEWPORT_OUTLINE_C;
+        }
         
         if (v->Init != NULL){
             v->Init(v);

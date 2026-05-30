@@ -61,9 +61,11 @@ static void CloseAllContextMenus() {
 
 static void Init(OG_Viewport *v){
     this = v;
-    v->ctx.style->spacing = 0;
-    v->ctx.style->padding = 0;
-    v->ctx.style->colors[MU_COLOR_BORDER] = v->ctx.style->colors[MU_COLOR_BUTTON];
+    mu_Context *ctx = &v->bottomPanel.ctx;
+    ctx->style->spacing = 0;
+    ctx->style->padding = 0;
+    ctx->style->colors[MU_COLOR_BORDER] = ctx->style->colors[MU_COLOR_BUTTON];
+        
 }
 
 static void Update(OG_Viewport *v){

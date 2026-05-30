@@ -21,7 +21,8 @@ static void Init(OG_Viewport *v){
 static void Update(OG_Viewport *v){
     if (v->hidden) return;
     if (OG.viewports.tail != v) return;
-    v->ctx.focus = input_id;
+    
+    v->topPanel.ctx.focus = input_id;
 
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !OG.viewportJustSwitched){
         if (!OG_MouseInViewport(v, false, false, false)){

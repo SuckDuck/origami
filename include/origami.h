@@ -101,14 +101,15 @@
 typedef struct OG_Panel{
     int size;
     bool resizable;
+    mu_Context ctx;
 } OG_Panel;
 
 typedef struct OG_Viewport{
     char *title;
     char *header;
     Rectangle size;
+    Rectangle minSize;
     Vector2 pos;
-    mu_Context ctx;
     RenderTexture renderTexture;
     Camera2D camera;
 
