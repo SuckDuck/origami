@@ -996,6 +996,46 @@ Vector2 OG_GetMouseViewportPosition(OG_Viewport* v){
     };
 }
 
+bool OG_IsKeyPressed(OG_Viewport *v, int key){
+    if (OG.viewportJustSwitched) return false;
+    if (OG.state != OG_STATE_IDLE) return false;
+    if (OG.modalViewport && v != OG.modalViewport) return false;
+    if (v != OG.viewports.tail) return false;
+    if (!OG_MouseInViewport(v, false, false, true))
+        return false;
+    return IsKeyPressed(key);
+}
+
+bool OG_IsKeyReleased(OG_Viewport *v, int key){
+    if (OG.viewportJustSwitched) return false;
+    if (OG.state != OG_STATE_IDLE) return false;
+    if (OG.modalViewport && v != OG.modalViewport) return false;
+    if (v != OG.viewports.tail) return false;
+    if (!OG_MouseInViewport(v, false, false, true))
+        return false;
+    return IsKeyReleased(key);
+}
+
+bool OG_IsKeyDown(OG_Viewport *v, int key){
+    if (OG.viewportJustSwitched) return false;
+    if (OG.state != OG_STATE_IDLE) return false;
+    if (OG.modalViewport && v != OG.modalViewport) return false;
+    if (v != OG.viewports.tail) return false;
+    if (!OG_MouseInViewport(v, false, false, true))
+        return false;
+    return IsKeyDown(key);
+}
+
+bool OG_IsKeyUp(OG_Viewport *v, int key){
+    if (OG.viewportJustSwitched) return false;
+    if (OG.state != OG_STATE_IDLE) return false;
+    if (OG.modalViewport && v != OG.modalViewport) return false;
+    if (v != OG.viewports.tail) return false;
+    if (!OG_MouseInViewport(v, false, false, true))
+        return false;
+    return IsKeyUp(key);
+}
+
 bool OG_IsMouseButtonPressed(OG_Viewport *v, int button){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
@@ -1016,6 +1056,26 @@ bool OG_IsMouseButtonReleased(OG_Viewport *v, int button){
     return IsMouseButtonReleased(button);
 }
 
+bool OG_IsMouseButtonDown(OG_Viewport *v, int button){
+    if (OG.viewportJustSwitched) return false;
+    if (OG.state != OG_STATE_IDLE) return false;
+    if (OG.modalViewport && v != OG.modalViewport) return false;
+    if (v != OG.viewports.tail) return false;
+    if (!OG_MouseInViewport(v, false, false, true))
+        return false;
+    return IsMouseButtonDown(button);
+}
+
+bool OG_IsMouseButtonUp(OG_Viewport *v, int button){
+    if (OG.viewportJustSwitched) return false;
+    if (OG.state != OG_STATE_IDLE) return false;
+    if (OG.modalViewport && v != OG.modalViewport) return false;
+    if (v != OG.viewports.tail) return false;
+    if (!OG_MouseInViewport(v, false, false, true))
+        return false;
+    return IsMouseButtonUp(button);
+}
+
 void OG_ViewportUpdateZoom(OG_Viewport* v){
     if (OG.viewports.tail != v) return;
     if (!OG_MouseInViewport(v, false, false, true)) return;
@@ -1029,12 +1089,9 @@ void OG_ViewportUpdateZoom(OG_Viewport* v){
 int OG_ViewportUpdatePan(OG_Viewport* v){
     if (OG.viewports.tail != v) return 1;
     if (!OG_MouseInViewport(v, false, false, true)) return 1;
-    if (IsMouseButtonDown(MOUSE_MIDDLE_BUTTON)) {
-        Vector2 d = GetMouseDelta();
-        v->camera.target = (Vector2){v->camera.target.x - (d.x / v->camera.zoom),v->camera.target.y - (d.y / v->camera.zoom)};
-        return 0;
-    }
-    return 1;
+    Vector2 d = GetMouseDelta();
+    v->camera.target = (Vector2){v->camera.target.x - (d.x / v->camera.zoom),v->camera.target.y - (d.y / v->camera.zoom)};
+    return 0;
 }
 
 OG_Viewport *OG_GetViewportByName(char *name){

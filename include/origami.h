@@ -224,8 +224,14 @@ bool OG_MouseInViewport(OG_Viewport* v, bool titleBar, bool resizeHandle, bool o
 float OG_GetMouseWheelMove(OG_Viewport *v);
 Vector2 OG_GetMouseOverlayPosition(OG_Viewport* v);
 Vector2 OG_GetMouseViewportPosition(OG_Viewport* v);
+bool OG_IsKeyPressed(OG_Viewport *v, int key);
+bool OG_IsKeyReleased(OG_Viewport *v, int key);
+bool OG_IsKeyDown(OG_Viewport *v, int key);
+bool OG_IsKeyUp(OG_Viewport *v, int key);
 bool OG_IsMouseButtonPressed(OG_Viewport* v, int button);
 bool OG_IsMouseButtonReleased(OG_Viewport* v, int button);
+bool OG_IsMouseButtonDown(OG_Viewport *v, int button);
+bool OG_IsMouseButtonUp(OG_Viewport *v, int button);
 void OG_ViewportUpdateZoom(OG_Viewport* v);
 int OG_ViewportUpdatePan(OG_Viewport* v);
 OG_Viewport *OG_GetViewportByName(char *name);
