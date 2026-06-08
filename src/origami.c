@@ -258,8 +258,8 @@ void OG_ProcessViewportUI(OG_Viewport *v){
 
     // RIGHT PANEL
     ctx = &v->rightPanel.ctx;
+    mu_begin(ctx);
     if (v->RightPanel != NULL){
-        mu_begin(ctx);
         mu_Rect rect = mu_rect(
             v->pos.x+v->size.width + v->leftPanel.size + 2, 
             v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H), 
@@ -270,14 +270,13 @@ void OG_ProcessViewportUI(OG_Viewport *v){
         mu_get_current_container(ctx)->rect = rect;
         v->RightPanel(v,ctx);
         mu_end_window(ctx);
-        mu_end(ctx);
     }
+    mu_end(ctx);
     
-
     // LEFT PANEL
     ctx = &v->leftPanel.ctx;
+    mu_begin(ctx);
     if (v->LeftPanel != NULL){
-        mu_begin(ctx);
         mu_Rect rect = mu_rect(
             v->pos.x, 
             v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H), 
@@ -288,13 +287,13 @@ void OG_ProcessViewportUI(OG_Viewport *v){
         mu_get_current_container(ctx)->rect = rect;
         v->LeftPanel(v,ctx);
         mu_end_window(ctx);
-        mu_end(ctx);
     }
+    mu_end(ctx);
 
     // TOP PANEL
     ctx = &v->topPanel.ctx;
+    mu_begin(ctx);
     if (v->TopPanel != NULL){
-        mu_begin(ctx);
         mu_Rect rect = mu_rect(
             v->pos.x + v->leftPanel.size+1, 
             v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)-1, 
@@ -305,14 +304,13 @@ void OG_ProcessViewportUI(OG_Viewport *v){
         mu_get_current_container(ctx)->rect = rect;
         v->TopPanel(v,ctx);
         mu_end_window(ctx);
-        mu_end(ctx);
     }
+    mu_end(ctx);
     
-
     // BOTTOM PANEL
     ctx = &v->bottomPanel.ctx;
+    mu_begin(ctx);
     if (v->BottomPanel != NULL){
-        mu_begin(ctx);
         mu_Rect rect = mu_rect(
             v->pos.x + v->leftPanel.size+1, 
             v->pos.y + (v->size.height*-1) + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H) + v->topPanel.size +1, 
@@ -323,8 +321,8 @@ void OG_ProcessViewportUI(OG_Viewport *v){
         mu_get_current_container(ctx)->rect = rect;
         v->BottomPanel(v,ctx);
         mu_end_window(ctx);
-        mu_end(ctx);
     }
+    mu_end(ctx);
     
 }
 
