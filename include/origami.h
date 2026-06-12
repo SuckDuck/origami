@@ -98,17 +98,44 @@
 #include "microui.h"
 #include "origami_tools.h"
 
-typedef struct OG_Panel{
+typedef struct OG_Layout OG_Layout;
+typedef struct OG_Panel OG_Panel;
+typedef struct OG_Viewport OG_Viewport;
+typedef struct OG_ViewportLinkedList OG_ViewportLinkedList;
+typedef struct OG_PanelsDimensions OG_PanelsDimensions;
+typedef struct OG_Context OG_Context;
+
+typedef enum{
+    OG_LAYOUT_H,
+    OG_LAYOUT_V
+} OG_LayoutOrientation;
+
+typedef enum {
+    OG_LAYOUT_SECTION_LAYOUT,
+    OG_LAYOUT_SECTION_VIEWPORT
+} OG_LayoutSectionKind;
+
+struct OG_Layout{
+    Rectangle r;
+    float split_factor;
+    void *sections[2];
+    Rectangle sectionsRects[2];
+    OG_LayoutSectionKind sectionsKind[2];
+    OG_LayoutOrientation orientation;
+
+    struct OG_Layout *next;
+};
+
+struct OG_Panel{
     int size;
     bool resizable;
     mu_Context ctx;
-} OG_Panel;
+};
 
-typedef struct OG_Viewport{
+struct OG_Viewport{
     char *title;
     char *header;
     Rectangle size;
-    Rectangle minSize;
     Vector2 pos;
     RenderTexture renderTexture;
     Camera2D camera;
@@ -126,6 +153,7 @@ typedef struct OG_Viewport{
     bool renderAlways;
     bool noBorder;
 
+    OG_Layout *layout;
     OG_Panel rightPanel;
     OG_Panel leftPanel;
     OG_Panel topPanel;
@@ -143,16 +171,16 @@ typedef struct OG_Viewport{
     void (*RenderUnderlay)(struct OG_Viewport*);
     void (*Render)(struct OG_Viewport*);
     void (*RenderOverlay)(struct OG_Viewport*);
-    void (*RenderOnScreen)(struct OG_Viewport*, Vector2 viewportPos);
+    void (*RenderOnScreen)(struct OG_Viewport*, Vector2);
 
     struct OG_Viewport *prev;
     struct OG_Viewport *next;
-} OG_Viewport;
+};
 
-typedef struct OG_ViewportLinkedList{
+struct OG_ViewportLinkedList{
     OG_Viewport *head;
     OG_Viewport *tail;
-} OG_ViewportLinkedList;
+};
 
 typedef enum{
     OG_STATE_IDLE,
@@ -169,13 +197,13 @@ typedef enum{
     OG_BOTTOM_PANEL
 } OG_PanelType;
 
-typedef struct OG_PanelsDimensions{
+struct OG_PanelsDimensions{
     float left, right, top, bottom;
-} OG_PanelsDimensions;
+};
 
-typedef struct OG_Context {
+struct OG_Context{
     OG_State state;
-    mu_Context muCtx;
+    OG_Layout *layouts;
     OG_ViewportLinkedList viewports;
     OG_Viewport *viewportsToShow[5];
     OG_Viewport *targetViewport;
@@ -209,7 +237,7 @@ typedef struct OG_Context {
     // Flags
     bool drawFps;
     bool viewportJustSwitched;
-} OG_Context;
+};
 
 extern OG_Context OG;
 
@@ -240,6 +268,8 @@ void OG_ToggleViewportByName(char *name);
 void OG_OpenViewportByName(char *name);
 void OG_CloseViewportByName(char *name);
 void OG_ChangeCursor(OG_Viewport *v, MouseCursor c);
+void *OG_InitLayout(Rectangle *r, char *name, OG_LayoutOrientation orientation);
+OG_Layout *OG_AddLayout(OG_Layout *src, OG_Layout *dst, int i);
 
 OG_Viewport *OG_InitViewport(char* title, 
                     Rectangle rect,
