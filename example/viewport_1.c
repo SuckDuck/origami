@@ -33,7 +33,8 @@ static void Init(OG_Viewport *v){
 }
 
 static void Update(OG_Viewport *v){
-    OG_ViewportUpdatePan(v);
+    if (OG_IsMouseButtonDown(v, MOUSE_LEFT_BUTTON))
+        OG_ViewportUpdatePan(v);
     OG_ViewportUpdateZoom(v);
 }
 

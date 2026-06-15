@@ -22,12 +22,16 @@
 #define OG_VIEWPORT_PANEL_HANDLE_S 5
 #endif
 
+// Dirty workaround, this should be correctly removed
 #ifndef OG_VIEWPORT_MIN_W
-#define OG_VIEWPORT_MIN_W 200
+#define OG_VIEWPORT_MIN_W 1
+#endif
+#ifndef OG_VIEWPORT_MIN_H
+#define OG_VIEWPORT_MIN_H 1
 #endif
 
-#ifndef OG_VIEWPORT_MIN_H
-#define OG_VIEWPORT_MIN_H 200
+#ifndef MIN_LAYOUT_SIZE
+#define MIN_LAYOUT_SIZE 10
 #endif
 
 #ifndef OG_MIN_PANEL_SIZE
@@ -98,6 +102,8 @@
 #include "microui.h"
 #include "origami_tools.h"
 
+typedef struct OG_LayoutLine OG_LayoutLine;
+typedef struct OG_LayoutContainer OG_LayoutContainer;
 typedef struct OG_Layout OG_Layout;
 typedef struct OG_Panel OG_Panel;
 typedef struct OG_Viewport OG_Viewport;
@@ -105,25 +111,38 @@ typedef struct OG_ViewportLinkedList OG_ViewportLinkedList;
 typedef struct OG_PanelsDimensions OG_PanelsDimensions;
 typedef struct OG_Context OG_Context;
 
-typedef enum{
-    OG_LAYOUT_H,
-    OG_LAYOUT_V
-} OG_LayoutOrientation;
+typedef enum {
+    OG_LAYOUT_LINE_H,
+    OG_LAYOUT_LINE_V
+} OG_LayoutLineType;
 
 typedef enum {
-    OG_LAYOUT_SECTION_LAYOUT,
-    OG_LAYOUT_SECTION_VIEWPORT
-} OG_LayoutSectionKind;
+    OG_LAYOUT_LINE_TOP,
+    OG_LAYOUT_LINE_BOTTOM,
+    OG_LAYOUT_LINE_LEFT,
+    OG_LAYOUT_LINE_RIGHT
+} OG_LayoutFixedLine;
+
+struct OG_LayoutLine{
+    OG_LayoutLineType type;
+    bool fixed;
+    float t;
+    OG_Layout *layout;
+};
+
+struct OG_LayoutContainer{
+    OG_LayoutLine *lines[4];
+    Rectangle r;
+    OG_Viewport *v;
+    OG_Layout *layout;
+};
 
 struct OG_Layout{
-    Rectangle r;
-    float split_factor;
-    void *sections[2];
-    Rectangle sectionsRects[2];
-    OG_LayoutSectionKind sectionsKind[2];
-    OG_LayoutOrientation orientation;
-
-    struct OG_Layout *next;
+    Vector2 size;
+    OG_LayoutLine lines[256];
+    OG_LayoutContainer containers[256];
+    int linesQ, containersQ;
+    OG_Viewport *viewport;
 };
 
 struct OG_Panel{
@@ -153,7 +172,11 @@ struct OG_Viewport{
     bool renderAlways;
     bool noBorder;
 
+    bool needsRedraw;
+
     OG_Layout *layout;
+    OG_LayoutContainer *container;
+
     OG_Panel rightPanel;
     OG_Panel leftPanel;
     OG_Panel topPanel;
@@ -185,6 +208,8 @@ struct OG_ViewportLinkedList{
 typedef enum{
     OG_STATE_IDLE,
     OG_STATE_MOVING_VIEWPORT,
+    OG_STATE_RESIZING_LAYOUT,
+    OG_STATE_RESIZING_LAYOUT_LINE,
     OG_STATE_RESIZING_VIEWPORT,
     OG_STATE_RESIZING_PANEL,
     OG_STATE_ON_COMMAND_BAR
@@ -203,9 +228,10 @@ struct OG_PanelsDimensions{
 
 struct OG_Context{
     OG_State state;
-    OG_Layout *layouts;
     OG_ViewportLinkedList viewports;
     OG_Viewport *viewportsToShow[5];
+    OG_LayoutContainer *targetContainer;
+    OG_LayoutLine *targetLine;
     OG_Viewport *targetViewport;
     OG_Viewport *modalViewport;
     Texture icons;
@@ -246,7 +272,11 @@ void OG_CleanViewportUIInput(OG_Viewport *v);
 void OG_ProcessViewportUI(OG_Viewport *v);
 void OG_PushLog(char *format, ...);
 void OG_PushLogSimple(char *log);
-void OG_ResizeViewport(OG_Viewport *v, int w, int h);
+OG_Layout *OG_InitLayout(char *name, Rectangle r);
+OG_LayoutLine *OG_LayoutAddLine(OG_Layout *l, OG_LayoutLineType type, float t);
+OG_LayoutContainer *OG_LayoutAddContainer(OG_Layout *layout, OG_LayoutLine *top, OG_LayoutLine *bottom, OG_LayoutLine *left, OG_LayoutLine *right);
+void OG_LayoutAddViewport(OG_LayoutContainer *c, OG_Viewport *v);
+Vector2 OG_ResizeViewport(OG_Viewport *v, int w, int h);
 void OG_SetViewportOnTop(OG_Viewport *v);
 bool OG_MouseInViewport(OG_Viewport* v, bool titleBar, bool resizeHandle, bool onlyViewport);
 float OG_GetMouseWheelMove(OG_Viewport *v);
@@ -263,13 +293,12 @@ bool OG_IsMouseButtonUp(OG_Viewport *v, int button);
 void OG_ViewportUpdateZoom(OG_Viewport* v);
 int OG_ViewportUpdatePan(OG_Viewport* v);
 OG_Viewport *OG_GetViewportByName(char *name);
+void OG_ToggleLayouts(OG_Viewport *host);
 void OG_ToggleViewport(OG_Viewport *v);
 void OG_ToggleViewportByName(char *name);
 void OG_OpenViewportByName(char *name);
 void OG_CloseViewportByName(char *name);
 void OG_ChangeCursor(OG_Viewport *v, MouseCursor c);
-void *OG_InitLayout(Rectangle *r, char *name, OG_LayoutOrientation orientation);
-OG_Layout *OG_AddLayout(OG_Layout *src, OG_Layout *dst, int i);
 
 OG_Viewport *OG_InitViewport(char* title, 
                     Rectangle rect,
