@@ -22,16 +22,16 @@ static void Update(OG_Viewport *v){
     if (v->hidden) return;
     if (OG.viewports.tail != v) return;
     
-    v->topPanel.ctx.focus = input_id;
+    v->ctx.focus = input_id;
 
-    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !OG.viewportJustSwitched){
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)){
         if (!OG_MouseInViewport(v, false, false, false)){
             OG_CloseViewportByName("InputDialog");
         }
     }
 }
 
-static void TopPanel(OG_Viewport *v, mu_Context *ctx){
+static void UI(OG_Viewport *v, mu_Context *ctx){
     mu_layout_row(ctx, 1, (const int[]){-1}, 15);
 
     // manual textbox
@@ -51,7 +51,7 @@ static const char **GetCmds(){
 void OG_InputDialog(){
     OG_Viewport *v = OG_InitViewport(
         "InputDialog", 
-        (Rectangle){0,0,250, OG_VIEWPORT_MIN_H}, 
+        (Rectangle){0,0,250, 25}, 
         1.0f, 1.0f, 
         (OG_PanelsDimensions){}, 
         true, false, true, 
@@ -62,17 +62,15 @@ void OG_InputDialog(){
         NULL, 
         NULL, 
         NULL, 
-        NULL,
+        &UI,
         NULL, 
         NULL, 
-        &TopPanel, 
+        NULL, 
         NULL, 
         &GetCmds, 
         NULL
     );
 
-    v->topPanel.size = 25;
-    v->size.height = -1;
     v->noTitleBar = true;
     v->updateAlways = true;
 }

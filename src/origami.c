@@ -154,7 +154,7 @@ static bool IsViewportFullyVisible(OG_Viewport *v){
     return true;
 }
 
-static float GetRatio(int units, int maxSize){
+float GetRatio(int units, int maxSize){
     if (maxSize == 0)
         return 0.0f;
     return (float)units / maxSize;
@@ -214,11 +214,11 @@ void OG_UpdateViewportUIInput(OG_Viewport *v){
     };
 
     char pressedChar[32] = {0};
-    for (int i=0; i<32; i++){
+    /*for (int i=0; i<32; i++){
         pressedChar[i] = GetCharPressed();
         if (pressedChar[i] == 0) 
             break;
-    }
+    }*/
 
     for (int i=0; i<4; i++){
         mu_Context *ctx = ctxs[i];
@@ -345,7 +345,7 @@ void UpdateViewportUIInput(OG_Viewport *v){
     if (IsKeyReleased(KEY_ENTER)) mu_input_keyup(&v->ctx, MU_KEY_RETURN);    
     if (IsKeyReleased(KEY_BACKSPACE)) mu_input_keyup(&v->ctx, MU_KEY_BACKSPACE);
 
-    if (OG_MouseInViewport(v, false, false, false)){
+    if (v == OG.viewports.tail){
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) 
             mu_input_mousedown(&v->ctx, mousePosition.x,mousePosition.y,MU_MOUSE_LEFT);
         mu_input_scroll(&v->ctx, 0, GetMouseWheelMove()*OG_SCROLL_SPEED*-1);
@@ -378,7 +378,9 @@ void ProcessViewportUI(OG_Viewport *v){
         );
 
         mu_begin_window_ex(&v->ctx, "UI", rect, MU_OPT_NOCLOSE | MU_OPT_NOTITLE | MU_OPT_NORESIZE | MU_OPT_NOFRAME);
-        mu_get_current_container(&v->ctx)->rect = rect;
+        mu_Container *cnt = mu_get_current_container(&v->ctx);
+        cnt->rect = rect;
+        
         v->UI(v,&v->ctx);
         mu_end_window(&v->ctx);
     }
@@ -564,17 +566,12 @@ static void ApplyLayout(OG_Layout *l){
         OG_Viewport *v = container->v;
         if (!v) continue;
 
-        if (l->viewport->hidden != v->hidden){
+        if (l->viewport->hidden != v->hidden)
             OG_ToggleViewport(v);
-            if (!v->hidden) 
-                v->needsRedraw = true;
-        }
-            
+        
         v->pos = (Vector2){container->r.x, container->r.y};
-        if (v->size.width != container->r.width || (v->size.height*-1) != container->r.height){
+        if (v->size.width != container->r.width || (v->size.height*-1) != container->r.height)
             OG_ResizeViewport(v, container->r.width, container->r.height);
-            v->needsRedraw = true;
-        }
         
     }
 }
@@ -771,7 +768,7 @@ static void IdleState(){
     }
     
     // VIEWPORTS FOCUS
-    if (!OG_MouseInViewport(OG.viewports.tail,false,false,false) && !OG.viewports.tail->isModal ){
+    if (!OG_MouseInViewport(OG.viewports.tail,false,false,false)){
         for (OG_Viewport *v = OG.viewports.tail->prev; v != NULL; v = v->prev){ // for each viewport except the last-one
             if (v->hidden || !OG_MouseInViewport(v, false, false,false)) continue;
             if (IsViewportFullyVisible(v) || IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
@@ -801,26 +798,28 @@ static void IdleState(){
     OG_Layout *l = v->layout;
     if (v->container) l = v->container->layout;
     if (l){
-        Rectangle r = { 
-            l->viewport->pos.x + l->size.x - OG_VIEWPORT_CORNER_S, 
-            l->viewport->pos.y + l->size.y - OG_VIEWPORT_CORNER_S + (l->viewport->noTitleBar ? 0:OG_VIEWPORT_TITLE_H),
-            OG_VIEWPORT_CORNER_S, 
-            OG_VIEWPORT_CORNER_S 
-        };
+        if (l->viewport->resizable){
+            Rectangle r = { 
+                l->viewport->pos.x + l->size.x - OG_VIEWPORT_CORNER_S, 
+                l->viewport->pos.y + l->size.y - OG_VIEWPORT_CORNER_S + (l->viewport->noTitleBar ? 0:OG_VIEWPORT_TITLE_H),
+                OG_VIEWPORT_CORNER_S, 
+                OG_VIEWPORT_CORNER_S 
+            };
 
-        if (IsPointOnRect(mousePosition, r)){
-            #if __linux__
-                OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_ALL);
-            #else
-                OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_NWSE);
-            #endif    
+            if (IsPointOnRect(mousePosition, r)){
+                #if __linux__
+                    OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_ALL);
+                #else
+                    OG_ChangeCursor(NULL, MOUSE_CURSOR_RESIZE_NWSE);
+                #endif    
 
-            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-                OG.targetViewport = l->viewport;
-                OG.state = OG_STATE_RESIZING_LAYOUT;
-                return;
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                    OG.targetViewport = l->viewport;
+                    OG.state = OG_STATE_RESIZING_LAYOUT;
+                    return;
+                }
+
             }
-
         }
     }
 
@@ -1347,16 +1346,16 @@ Vector2 OG_ResizeViewport(OG_Viewport *v, int w, int h){
 }
 
 void OG_SetViewportOnTop(OG_Viewport *v){
+    if (OG.modalViewport && OG.modalViewport != v){
+        if (!v->container || v->container->layout->viewport != OG.modalViewport){
+            return;
+        }
+    }
+    
     static bool nestedCalls = false;
     OG.targetViewport = v;
     if (v == OG.viewports.tail) return;
-    if (OG.modalViewport != NULL){
-        if (OG.modalViewport != v){
-            OG_PushLog("Cant't set %s on top, a modal viewport is currently open", v->title);
-            return;    
-        }
-    }
-
+    
     if (v->layout){
         for (int i=0; i<v->layout->containersQ; i++){
             if (!v->layout->containers[i].v) continue;
@@ -1378,6 +1377,7 @@ void OG_SetViewportOnTop(OG_Viewport *v){
     v->prev = OG.viewports.tail;
     v->next = NULL;
     OG.viewports.tail = v;
+    CleanViewportUIInput(v);
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         OG.viewportJustSwitched = true;
 }
@@ -1449,7 +1449,6 @@ Vector2 OG_GetMouseViewportPosition(OG_Viewport* v){
 bool OG_IsKeyPressed(OG_Viewport *v, int key){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
-    if (OG.modalViewport && v != OG.modalViewport) return false;
     if (v != OG.viewports.tail) return false;
     if (!OG_MouseInViewport(v, false, false, true))
         return false;
@@ -1459,7 +1458,6 @@ bool OG_IsKeyPressed(OG_Viewport *v, int key){
 bool OG_IsKeyReleased(OG_Viewport *v, int key){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
-    if (OG.modalViewport && v != OG.modalViewport) return false;
     if (v != OG.viewports.tail) return false;
     if (!OG_MouseInViewport(v, false, false, true))
         return false;
@@ -1469,7 +1467,6 @@ bool OG_IsKeyReleased(OG_Viewport *v, int key){
 bool OG_IsKeyDown(OG_Viewport *v, int key){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
-    if (OG.modalViewport && v != OG.modalViewport) return false;
     if (v != OG.viewports.tail) return false;
     if (!OG_MouseInViewport(v, false, false, true))
         return false;
@@ -1479,7 +1476,6 @@ bool OG_IsKeyDown(OG_Viewport *v, int key){
 bool OG_IsKeyUp(OG_Viewport *v, int key){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
-    if (OG.modalViewport && v != OG.modalViewport) return false;
     if (v != OG.viewports.tail) return false;
     if (!OG_MouseInViewport(v, false, false, true))
         return false;
@@ -1489,7 +1485,6 @@ bool OG_IsKeyUp(OG_Viewport *v, int key){
 bool OG_IsMouseButtonPressed(OG_Viewport *v, int button){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
-    if (OG.modalViewport && v != OG.modalViewport) return false;
     if (v != OG.viewports.tail) return false;
     if (!OG_MouseInViewport(v, false, false, true))
         return false;
@@ -1499,7 +1494,6 @@ bool OG_IsMouseButtonPressed(OG_Viewport *v, int button){
 bool OG_IsMouseButtonReleased(OG_Viewport *v, int button){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
-    if (OG.modalViewport && v != OG.modalViewport) return false;
     if (v != OG.viewports.tail) return false;
     if (!OG_MouseInViewport(v, false, false, true))
         return false;
@@ -1509,7 +1503,6 @@ bool OG_IsMouseButtonReleased(OG_Viewport *v, int button){
 bool OG_IsMouseButtonDown(OG_Viewport *v, int button){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
-    if (OG.modalViewport && v != OG.modalViewport) return false;
     if (v != OG.viewports.tail) return false;
     if (!OG_MouseInViewport(v, false, false, true))
         return false;
@@ -1519,7 +1512,6 @@ bool OG_IsMouseButtonDown(OG_Viewport *v, int button){
 bool OG_IsMouseButtonUp(OG_Viewport *v, int button){
     if (OG.viewportJustSwitched) return false;
     if (OG.state != OG_STATE_IDLE) return false;
-    if (OG.modalViewport && v != OG.modalViewport) return false;
     if (v != OG.viewports.tail) return false;
     if (!OG_MouseInViewport(v, false, false, true))
         return false;
@@ -1558,22 +1550,25 @@ OG_Viewport *OG_GetViewportByName(char *name){
 }
 
 void OG_ToggleViewport(OG_Viewport *v){
-    if (OG.modalViewport != NULL){
-        if (v != OG.modalViewport && !v->isModal){
-            OG_PushLog("Cant't toggle %s, a modal viewport is currently open", v->title);
+    if (OG.modalViewport && OG.modalViewport != v){
+        if (!v->container || v->container->layout->viewport != OG.modalViewport){
+            OG_PushLog("Can't toggle '%s': there is a modal viewport already open", v->title);
             return;
         }
-
-        OG.modalViewport = NULL;
     }
-    
+        
     v->hidden = !v->hidden;
     if (!v->hidden){
-        if (v->isModal) OG.modalViewport = v;
         OG_ResizeViewport(v, -1, -1);
         OG_SetViewportOnTop(v);
+        if (v->isModal)
+            OG.modalViewport = v;
     }
+
     else if (v == OG.viewports.tail){
+        if (OG.modalViewport)
+            OG.modalViewport = NULL;
+        
         while (true){
             if (v == NULL) return;
             if (!v->hidden){
@@ -1861,8 +1856,32 @@ bool OG_UpdateFrame(){
 bool OG_RenderFrame(){
     for (OG_Viewport *v = OG.viewports.head; v != NULL; v = v->next){
         if (v == OG.viewports.tail || v->renderAlways || v->needsRedraw){
-            RenderViewport(v);
-            v->needsRedraw = false;
+            if (v->layout){
+                for (int i=0; i<v->layout->containersQ; i++){
+                    if (v->layout->containers[i].v) {
+                        RenderViewport(v->layout->containers[i].v);
+                        v->layout->containers[i].v->needsRedraw = false;
+                    }   
+                }
+                    
+                RenderViewport(v);
+                v->needsRedraw = false;
+            }
+
+            else if (v->container){
+                for (int i=0; i<v->container->layout->containersQ; i++){
+                    if (v->container->layout->containers[i].v){
+                        RenderViewport(v->container->layout->containers[i].v);
+                        v->container->layout->containers[i].v->needsRedraw = false;
+                    }
+                }
+            }
+            
+            else {
+                RenderViewport(v);
+                v->needsRedraw = false;
+            }
+            
         }
     }
     

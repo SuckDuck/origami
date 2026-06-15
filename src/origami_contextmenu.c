@@ -61,10 +61,9 @@ static void CloseAllContextMenus() {
 
 static void Init(OG_Viewport *v){
     this = v;
-    mu_Context *ctx = &v->bottomPanel.ctx;
-    ctx->style->spacing = 0;
-    ctx->style->padding = 0;
-    ctx->style->colors[MU_COLOR_BORDER] = ctx->style->colors[MU_COLOR_BUTTON];
+    v->ctx.style->spacing = 0;
+    v->ctx.style->padding = 0;
+    v->ctx.style->colors[MU_COLOR_BORDER] = v->ctx.style->colors[MU_COLOR_BUTTON];
         
 }
 
@@ -81,7 +80,7 @@ static void Update(OG_Viewport *v){
 
     if (OG.viewports.tail != v) return;
 
-    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !OG.viewportJustSwitched && !dontCloseFlag){
+    if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !dontCloseFlag){
         if (!OG_MouseInViewport(v, false, false, false)){
             CloseAllContextMenus();
         }
@@ -90,7 +89,7 @@ static void Update(OG_Viewport *v){
     dontCloseFlag = false;
 }
 
-static void BottomPanel(OG_Viewport *v, mu_Context *ctx){
+static void UI(OG_Viewport *v, mu_Context *ctx){
     if (menusQ <= 0) return;
     
     if (menus[menusQ-1].options){
@@ -113,6 +112,8 @@ static void BottomPanel(OG_Viewport *v, mu_Context *ctx){
 
 }
 
+static void Render(OG_Viewport *v){}
+
 static const char **GetCmds(){
     return commands;
 }
@@ -120,27 +121,26 @@ static const char **GetCmds(){
 void OG_ContextMenu(){
     OG_Viewport *v = OG_InitViewport(
         "ContextMenu", 
-        (Rectangle){0,0,250, OG_VIEWPORT_MIN_H}, 
+        (Rectangle){0,0,250, 250}, 
         1.0f, 1.0f,
-        (OG_PanelsDimensions){.bottom=250}, 
+        (OG_PanelsDimensions){}, 
         true, false, true, 
         &Init, 
         &Update, 
         NULL,
-        NULL, 
-        NULL, 
-        NULL,
+        &Render, 
         NULL, 
         NULL,
         NULL, 
+        &UI,
         NULL, 
         NULL, 
-        &BottomPanel, 
+        NULL, 
+        NULL, 
         &GetCmds, 
         NULL
     );
 
-    v->size.height = -1;
     v->updateAlways = true;
 }
 
@@ -154,10 +154,11 @@ static ContextMenu *OpenContextMenuHelper(void (*_callback)(int), int optQ){
 
     menus[menusQ].callback = _callback;
     menus[menusQ].callbackStr = NULL;
-    this->bottomPanel.size = optQ*OPT_HEIGHT+1;
-    if (this->bottomPanel.size > MAX_HEIGHT)
-        this->bottomPanel.size = MAX_HEIGHT;
-
+    OG_ResizeViewport(
+        this, this->size.width, 
+        (optQ*OPT_HEIGHT+1) > MAX_HEIGHT?MAX_HEIGHT:(optQ*OPT_HEIGHT+1)
+    );
+    
     menusQ++;
     dontCloseFlag = true;
     return &menus[menusQ-1];
@@ -216,5 +217,4 @@ void OG_OpenContextMenuV3(void (*_callback)(char*), char *hint, int optQ, char *
             strcpy(cm->options[ii++], opt);
         }
     }
-
 }

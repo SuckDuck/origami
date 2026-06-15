@@ -271,6 +271,7 @@ struct OG_Context{
 
 extern OG_Context OG;
 
+float GetRatio(int units, int maxSize);
 void OG_UpdateViewportUIInput(OG_Viewport *v);
 void OG_CleanViewportUIInput(OG_Viewport *v);
 void OG_ProcessViewportUI(OG_Viewport *v);

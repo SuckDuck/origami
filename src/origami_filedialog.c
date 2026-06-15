@@ -71,10 +71,12 @@ static void FreeFileList(FileList fl){
 
 static void Init(OG_Viewport *v){
     pwdFiles = InitFileList(".");
+    v->updateAlways = true;
     this = v;
 }
 
 static void Update(OG_Viewport *v){
+    if (v->hidden) return;
     // Scroll logic
     contentSize = (OG.defaultFontSize+2) * pwdFiles.count;
     if (contentSize <= v->size.height*-1)
@@ -116,7 +118,7 @@ static void Update(OG_Viewport *v){
                     
                     else{
                         if (Ok != NULL && Ok(filename))
-                            OG_ToggleViewportByName(v->title);
+                            OG_ToggleViewportByName(v->container->layout->viewport->title);
                             
                     }
                 }
@@ -132,11 +134,6 @@ static void Update(OG_Viewport *v){
         verticalOffset += OG.defaultFontSize+2;
     }
 
-    // a little workaround to force 
-    // the update of the scrollbar :)
-    // *go to TopPanel*
-    v->renderAlways = false;
-    v->updateAlways = false;
 }
 
 static const char **GetCmds(){
@@ -176,7 +173,7 @@ static void RenderOverlay(OG_Viewport *v){
 
 }
 
-static void TopPanel(OG_Viewport *v, mu_Context *ctx){
+static void AdressBar(OG_Viewport *v, mu_Context *ctx){
     mu_layout_row(ctx, 2, (const int[]){-40, -1}, 25);
     mu_textbox_ex(ctx, (char*) GetWorkingDirectory(), PATH_MAX, MU_OPT_NOINTERACT);
     if(mu_button(ctx, "Up")){
@@ -186,16 +183,10 @@ static void TopPanel(OG_Viewport *v, mu_Context *ctx){
             FreeFileList(pwdFiles);
             pwdFiles = InitFileList(".");
         }
-
-        // a little workaround to force 
-        // the update of the scrollbar :)
-        // *go to Update*
-        v->renderAlways = true;
-        v->updateAlways = true;
     }
 }
 
-static void BottomPanel(OG_Viewport *v, mu_Context *ctx){
+static void Footer(OG_Viewport *v, mu_Context *ctx){
     
     mu_layout_row(ctx, 4, (const int[]){80, -150, 70, -1}, 25);
     
@@ -217,7 +208,7 @@ static void BottomPanel(OG_Viewport *v, mu_Context *ctx){
     if (currentMode == OG_FD_MODE_SELECT_DIR){
         if (selectedFile && selectedFile->isDir){
             if (mu_button(ctx, "Ok") && Ok && Ok(filename))
-                OG_ToggleViewportByName(v->title);
+                OG_ToggleViewportByName(v->container->layout->viewport->title);
         }
         
         else {
@@ -237,48 +228,135 @@ static void BottomPanel(OG_Viewport *v, mu_Context *ctx){
         }
         
         else if (Ok != NULL && Ok(filename))
-            OG_ToggleViewportByName(v->title);
+            OG_ToggleViewportByName(v->container->layout->viewport->title);
     }
 
     if (mu_button(ctx, "Cancel")){
         if (selectedFile)
             selectedFile = NULL;
-        else OG_ToggleViewportByName(v->title);
+        else OG_ToggleViewportByName(v->container->layout->viewport->title);
     }
 
 }
 
 void OG_FileDialog(){
-    OG_Viewport *v = OG_InitViewport(
-        "FileDialog", 
-        (Rectangle){0,0,500,300}, 
-        1.0f, 1.0f, 
-        (OG_PanelsDimensions){}, 
-        true, false, true, 
-        &Init, 
-        &Update, 
-        NULL, 
-        NULL, 
-        &RenderOverlay, 
-        NULL, 
-        NULL,
-        NULL, 
-        NULL, 
-        NULL, 
-        &TopPanel, 
-        &BottomPanel, 
-        &GetCmds, 
-        NULL
+    const int width = 500;
+    const int height = 300;
+
+    OG_Layout *l = OG_InitLayout("FileDialog", (Rectangle){0,0, width, height});
+    l->viewport->hideCmd = true;
+    l->viewport->isModal = true;
+    l->viewport->resizable = false;
+    
+    // LINES
+    OG_LayoutLine *topLine = OG_LayoutAddLine(l, OG_LAYOUT_LINE_H, GetRatio(38, height));
+    topLine->fixed = true;
+    OG_LayoutLine *bottomLine = OG_LayoutAddLine(l, OG_LAYOUT_LINE_H, GetRatio(height-38, height));
+    bottomLine->fixed = true;
+
+    // ADDRESS BAR
+    OG_LayoutContainer *addressBar = OG_LayoutAddContainer(
+        l, 
+        &l->lines[OG_LAYOUT_LINE_TOP], topLine, 
+        &l->lines[OG_LAYOUT_LINE_LEFT], &l->lines[OG_LAYOUT_LINE_RIGHT]
     );
 
-    v->bottomPanel.size = 38;
-    v->topPanel.size = 38;
+    OG_LayoutAddViewport(
+        addressBar,
+        OG_InitViewport(
+            "FileDialog_AddressBar", 
+            (Rectangle){}, 
+            1.0f, 1.0f, 
+            (OG_PanelsDimensions){}, 
+            true, false, false, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            &AdressBar, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL
+        )
+    );
+
+    // FileList
+    OG_LayoutContainer *fileList = OG_LayoutAddContainer(
+        l, 
+        topLine, bottomLine,
+        &l->lines[OG_LAYOUT_LINE_LEFT], &l->lines[OG_LAYOUT_LINE_RIGHT]
+    );
+
+    OG_LayoutAddViewport(
+        fileList,
+        OG_InitViewport(
+            "FileDialog_FileList", 
+            (Rectangle){0,0,500,300}, 
+            1.0f, 1.0f, 
+            (OG_PanelsDimensions){}, 
+            true, false, false, 
+            &Init, 
+            &Update, 
+            NULL, 
+            NULL, 
+            &RenderOverlay, 
+            NULL, 
+            NULL,
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            &GetCmds, 
+            NULL
+        )
+    );
+
+    // Footer
+    OG_LayoutContainer *footer = OG_LayoutAddContainer(
+        l, 
+        bottomLine, &l->lines[OG_LAYOUT_LINE_BOTTOM],
+        &l->lines[OG_LAYOUT_LINE_LEFT], &l->lines[OG_LAYOUT_LINE_RIGHT]
+    );
+
+    OG_LayoutAddViewport(
+        footer, 
+        OG_InitViewport(
+            "FileDialog_Footer", 
+            (Rectangle){}, 
+            1.0f, 1.0f, 
+            (OG_PanelsDimensions){}, 
+            true, false, false, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            &Footer, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL, 
+            NULL
+        )
+    );
+
 }
 
 void OG_OpenFileDialog(bool (*ok_callback)(char*), OG_FileDialogMode mode, char *msg){
     Ok = ok_callback;
     currentMode = mode;
     selectedFile = NULL;
-    this->header = msg;
+    OG_Viewport *v = OG_GetViewportByName("FileDialog");
+    v->header = msg;
     OG_ToggleViewportByName("FileDialog");
 }
