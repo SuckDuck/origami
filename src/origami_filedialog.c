@@ -261,6 +261,7 @@ void OG_FileDialog(){
         NULL, 
         &RenderOverlay, 
         NULL, 
+        NULL,
         NULL, 
         NULL, 
         NULL, 

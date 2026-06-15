@@ -158,6 +158,7 @@ struct OG_Viewport{
     Vector2 pos;
     RenderTexture renderTexture;
     Camera2D camera;
+    mu_Context ctx;
 
     float minZoom;
     float maxZoom;
@@ -187,10 +188,13 @@ struct OG_Viewport{
     void (*OnResize)(struct OG_Viewport*);
     const char** (*GetCmds)();
     void (*ExecCmd)(struct OG_Viewport*, int argc, char **argv);
+    
+    void (*UI)(struct OG_Viewport*, mu_Context*);
     void (*RightPanel)(struct OG_Viewport*, mu_Context*);
     void (*LeftPanel)(struct OG_Viewport*, mu_Context*);
     void (*TopPanel)(struct OG_Viewport*, mu_Context*);
     void (*BottomPanel)(struct OG_Viewport*, mu_Context*);
+    
     void (*RenderUnderlay)(struct OG_Viewport*);
     void (*Render)(struct OG_Viewport*);
     void (*RenderOverlay)(struct OG_Viewport*);
@@ -314,6 +318,7 @@ OG_Viewport *OG_InitViewport(char* title,
                     void (*RenderOverlay)(OG_Viewport*),
                     void (*RenderUnderlay)(OG_Viewport*),
                     void (*RenderOnScreen)(OG_Viewport*, Vector2),
+                    void (*UI)(struct OG_Viewport*, mu_Context*),
                     void (*RightPanel)(OG_Viewport*, mu_Context*), 
                     void (*LeftPanel)(OG_Viewport*, mu_Context*), 
                     void (*TopPanel)(OG_Viewport*, mu_Context*), 

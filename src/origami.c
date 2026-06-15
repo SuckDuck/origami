@@ -157,7 +157,6 @@ static bool IsViewportFullyVisible(OG_Viewport *v){
 static float GetRatio(int units, int maxSize){
     if (maxSize == 0)
         return 0.0f;
-
     return (float)units / maxSize;
 }
 
@@ -201,7 +200,6 @@ static void PopLog(){
     OG.logsQ--;
     OG.logsTimer = 0.0;
 }
-
 
 /* <== UI Section ==============================================> */
 
@@ -337,6 +335,111 @@ void OG_ProcessViewportUI(OG_Viewport *v){
     
 }
 
+void UpdateViewportUIInput(OG_Viewport *v){
+    Vector2 mousePosition = OG_GetMouseOverlayPosition(v);
+    
+    mu_input_mousemove(&v->ctx, mousePosition.x, mousePosition.y);
+    if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) 
+            mu_input_mouseup(&v->ctx,mousePosition.x,mousePosition.y,MU_MOUSE_LEFT);
+    if (IsKeyReleased(KEY_LEFT_SHIFT)) mu_input_keyup(&v->ctx, MU_KEY_SHIFT); 
+    if (IsKeyReleased(KEY_ENTER)) mu_input_keyup(&v->ctx, MU_KEY_RETURN);    
+    if (IsKeyReleased(KEY_BACKSPACE)) mu_input_keyup(&v->ctx, MU_KEY_BACKSPACE);
+
+    if (OG_MouseInViewport(v, false, false, false)){
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) 
+            mu_input_mousedown(&v->ctx, mousePosition.x,mousePosition.y,MU_MOUSE_LEFT);
+        mu_input_scroll(&v->ctx, 0, GetMouseWheelMove()*OG_SCROLL_SPEED*-1);
+        if (IsKeyPressed(KEY_LEFT_SHIFT)) mu_input_keydown(&v->ctx, MU_KEY_SHIFT);    
+        if (IsKeyPressed(KEY_ENTER)) mu_input_keydown(&v->ctx, MU_KEY_RETURN);
+        if (IsKeyPressed(KEY_BACKSPACE)) mu_input_keydown(&v->ctx, MU_KEY_BACKSPACE);
+        
+        while (true){
+            char p[] = {GetCharPressed(), 0};
+            if (p[0] == 0) break;
+            mu_input_text(&v->ctx, p);
+        }
+    }
+}
+
+void CleanViewportUIInput(OG_Viewport *v){
+    mu_input_mousemove(&v->ctx, 0, 0);
+    mu_input_mouseup(&v->ctx, 0, 0, MU_MOUSE_LEFT);
+    mu_input_mouseup(&v->ctx, 0, 0, MU_MOUSE_RIGHT);
+    mu_input_scroll(&v->ctx, 0, 0);
+}
+
+void ProcessViewportUI(OG_Viewport *v){
+    mu_begin(&v->ctx);
+    if (v->UI != NULL){
+        mu_Rect rect = mu_rect(
+            0, 0, 
+            v->size.width, 
+            v->size.height*-1
+        );
+
+        mu_begin_window_ex(&v->ctx, "UI", rect, MU_OPT_NOCLOSE | MU_OPT_NOTITLE | MU_OPT_NORESIZE | MU_OPT_NOFRAME);
+        mu_get_current_container(&v->ctx)->rect = rect;
+        v->UI(v,&v->ctx);
+        mu_end_window(&v->ctx);
+    }
+    mu_end(&v->ctx);
+}
+
+void RenderViewportUI(OG_Viewport *v){
+    mu_Command *cmd = NULL;
+    while (mu_next_command(&v->ctx, &cmd)){
+        switch(cmd->type){
+            case MU_COMMAND_TEXT: {
+                DrawTextEx(
+                    *(Font*)(cmd->text.font), 
+                    cmd->text.str, 
+                    (Vector2){cmd->text.pos.x,cmd->text.pos.y},
+                    OG.defaultFontSize,
+                    2,
+                    *(Color*)&cmd->text.color
+                );
+                break;
+            }
+
+            case MU_COMMAND_RECT: {
+                DrawRectangle(
+                    cmd->rect.rect.x, 
+                    cmd->rect.rect.y, 
+                    cmd->rect.rect.w, 
+                    cmd->rect.rect.h, 
+                    *(Color*)&cmd->rect.color
+                );
+                break;
+            }
+
+            case MU_COMMAND_ICON: {
+                Texture2D icons = OG.icons;
+                int iconsWidth = icons.width/OG_ICONS_Q;
+                DrawTexturePro(
+                    OG.icons,
+                    (Rectangle){iconsWidth*(cmd->icon.id-1),0,iconsWidth,icons.height}, 
+                    (Rectangle){cmd->icon.rect.x, cmd->icon.rect.y, cmd->icon.rect.w, cmd->icon.rect.h}, 
+                    (Vector2){0,0}, 
+                    0.0, 
+                    OG_TEXT_C
+                );
+                break;
+            }
+            
+            case MU_COMMAND_CLIP: {
+                mu_Rect r = cmd->clip.rect;    
+                if (r.x == 0 && r.y == 0){
+                    EndScissorMode();
+                    break;
+                }
+                
+                BeginScissorMode(r.x, r.y, r.w, r.h);
+                break;
+            }
+
+        }
+    }
+}
 
 /* <== Layouts Section =========================================> */
 
@@ -346,13 +449,13 @@ static void CalcLayout(OG_Viewport *v){
         OG_LayoutContainer *container = &l->containers[i];
         
         Vector2 p = {
-            Lerp(
+            (int)Lerp(
                 v->pos.x, 
                 v->pos.x + l->size.x, 
                 container->lines[OG_LAYOUT_LINE_LEFT]->t
             ),
 
-            Lerp(
+            (int)Lerp(
                 v->pos.y + (v->noTitleBar?0:OG_VIEWPORT_TITLE_H), 
                 v->pos.y + (v->noTitleBar?0:OG_VIEWPORT_TITLE_H) + l->size.y,
                 container->lines[OG_LAYOUT_LINE_TOP]->t
@@ -486,6 +589,7 @@ static void RenderViewport(OG_Viewport *v){
     if (v->Render != NULL) v->Render(v);
     EndMode2D();
     if (v->RenderOverlay != NULL) v->RenderOverlay(v);
+    RenderViewportUI(v);
     EndTextureMode();
 }
 
@@ -640,6 +744,7 @@ static void IdleState(){
 
     OG_ChangeCursor(NULL, MOUSE_CURSOR_DEFAULT);
 
+    // SHOW VIEWPORTS
     for (int i=0; i<5; i++){
         OG_Viewport *v = OG.viewportsToShow[i];
         if (v != NULL){
@@ -873,16 +978,18 @@ static void IdleState(){
     // VIEWPORT EXIT
     if (IsKeyPressed(KEY_ESCAPE)){
         if (OG_MouseInViewport(v, false, false, false)){
-            OG_ToggleViewport(v);
+            if (v->container)
+                OG_ToggleViewport(v->container->layout->viewport);
+            else OG_ToggleViewport(v);
             return;
         }
     }
 
     // VIEWPORT UPDATE
-    if (OG_MouseInViewport(v, false, false, true) && v->Update != NULL && !v->updateAlways ){
+    if (OG_MouseInViewport(v, false, false, true) && v->Update != NULL && !v->updateAlways )
         v->Update(v);
-    }
-
+    
+    // UI
     OG_UpdateViewportUIInput(v);
     OG_ProcessViewportUI(v);
 }
@@ -942,7 +1049,7 @@ static void ResizingLayoutLineState(){
                 );
             } break;
         }
-        
+
         l->t = t;
         OG.state = OG_STATE_IDLE;
         return;
@@ -1125,7 +1232,6 @@ static void OnCommandBarState(){
     if (OG.selectedHint < 0) OG.selectedHint = 0;
 }
 
-
 /* <== Public API ==============================================> */
 
 OG_Layout *OG_InitLayout(char *name, Rectangle r){ 
@@ -1142,6 +1248,7 @@ OG_Layout *OG_InitLayout(char *name, Rectangle r){
         NULL, 
         NULL, 
         NULL, 
+        NULL,
         NULL, 
         NULL, 
         NULL, 
@@ -1543,6 +1650,7 @@ OG_Viewport *OG_InitViewport(char* title,
                     void (*RenderOnScreen)(OG_Viewport*, Vector2),
 
                     // UI Callbacks
+                    void (*UI)(struct OG_Viewport*, mu_Context*),
                     void (*RightPanel)(OG_Viewport*, mu_Context*), 
                     void (*LeftPanel)(OG_Viewport*, mu_Context*), 
                     void (*TopPanel)(OG_Viewport*, mu_Context*), 
@@ -1561,7 +1669,6 @@ OG_Viewport *OG_InitViewport(char* title,
     v->minZoom = minZoom;
     v->maxZoom = maxZoom;
     v->hidden = true;
-    
 
     // Camera
     v->camera.target = (Vector2){0,0};
@@ -1569,7 +1676,18 @@ OG_Viewport *OG_InitViewport(char* title,
     v->camera.rotation = 0.0f;
     v->camera.zoom = 1.0f;
     v->renderTexture = LoadCustomRenderTexture(rect.width,rect.height);
-    
+
+    // UI Init
+    mu_init(&v->ctx);    
+    v->ctx.text_width = text_width;
+    v->ctx.text_height = text_height;
+    v->ctx.style->title_height = OG_VIEWPORT_TITLE_H;
+    v->ctx.style->font = (void*) &(OG.defaultFont);
+    v->ctx.style->colors[MU_COLOR_WINDOWBG]  = *(mu_Color*) &OG_VIEWPORT_BG_C;
+    v->ctx.style->colors[MU_COLOR_TITLEBG]   = *(mu_Color*) &OG_VIEWPORT_TITLE_C;
+    v->ctx.style->colors[MU_COLOR_TITLETEXT] = *(mu_Color*) &OG_TEXT_C;
+    v->ctx.style->colors[MU_COLOR_BORDER]    = *(mu_Color*) &OG_VIEWPORT_OUTLINE_C;
+    v->UI = UI;
 
     // Flags
     v->hideCmd = hideCmd;
@@ -1589,8 +1707,7 @@ OG_Viewport *OG_InitViewport(char* title,
     v->RenderUnderlay = RenderUnderlay;
     v->RenderOnScreen = RenderOnScreen;
 
-
-    // UI callbacks
+    /* DEPRECADO */
     v->RightPanel = RightPanel;
     v->LeftPanel = LeftPanel;
     v->TopPanel = TopPanel;
@@ -1709,7 +1826,19 @@ bool OG_UpdateFrame(){
             CalcLayout(v);
             ApplyLayout(v->layout);
         }
-        if (v->updateAlways) v->Update(v);
+        if (v->updateAlways){
+            if (v->Update) v->Update(v);
+        }
+    }
+
+    for (OG_Viewport *v=OG.viewports.head; v != NULL; v = v->next){
+        if (v->hidden) continue;
+        UpdateViewportUIInput(v);
+        if (v->container && (OG.viewports.tail == v->container->layout->viewport || OG.viewports.tail->prev == v->container->layout->viewport)){
+            for (int i=0; i<3; i++) // weird workaround
+                ProcessViewportUI(v);
+        }
+        else ProcessViewportUI(v);
     }
 
     // EXECUTE LOGS LOGIC
@@ -1731,8 +1860,10 @@ bool OG_UpdateFrame(){
 
 bool OG_RenderFrame(){
     for (OG_Viewport *v = OG.viewports.head; v != NULL; v = v->next){
-        if (v == OG.viewports.tail || v->renderAlways || v->needsRedraw) RenderViewport(v);
-        v->needsRedraw = false;
+        if (v == OG.viewports.tail || v->renderAlways || v->needsRedraw){
+            RenderViewport(v);
+            v->needsRedraw = false;
+        }
     }
     
     BeginDrawing();
