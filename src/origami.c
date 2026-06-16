@@ -1082,7 +1082,7 @@ Vector2 OG_GetMouseOverlayPosition(OG_Viewport* v){
 Vector2 OG_GetMouseViewportPosition(OG_Viewport* v){
     Vector2 mousePosition = GetMousePosition();
     return (Vector2){
-        (mousePosition.x - v->camera.offset.x)/v->camera.zoom + v->camera.target.x,
+        (mousePosition.x - v->pos.x - v->camera.offset.x)/v->camera.zoom + v->camera.target.x,
         (mousePosition.y - (v->pos.y+(v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H)) - v->camera.offset.y)/v->camera.zoom + v->camera.target.y
     };
 }
