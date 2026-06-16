@@ -531,9 +531,8 @@ static void IdleState(){
         for (OG_Viewport *v = OG.viewports.tail->prev; v != NULL; v = v->prev){ // for each viewport except the last-one
             if (v->hidden || !OG_MouseInViewport(v, false, false,false)) continue;
             if (IsViewportFullyVisible(v) || IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) OG.viewportJustSwitched = true;
-                if (OG.viewports.tail->container)
-                    OG_SetViewportOnTop(OG.viewports.tail->container->layout->viewport);    
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) 
+                    OG.viewportJustSwitched = true;
                 OG_SetViewportOnTop(v);
                 break;
             }
@@ -801,8 +800,14 @@ static void OnCommandBarState(){
         
         for (OG_Viewport *v = OG.viewports.head; v != NULL; v = v->next){
             if (strcmp(OG.hintsBuf[OG.selectedHint],v->title) == 0){
-                if (v->hidden) OG_ToggleViewport(v);
-                else OG_SetViewportOnTop(v);
+                if (v->hidden){
+                    OG_ToggleViewport(v);
+                }
+
+                else {
+                    OG_SetViewportOnTop(v);
+                }
+
                 return;
             }
         }
@@ -971,6 +976,17 @@ Vector2 OG_ResizeViewport(OG_Viewport *v, int w, int h){
 }
 
 void OG_SetViewportOnTop(OG_Viewport *v){
+    static bool zOrderWorkaround = false;
+    if (!zOrderWorkaround){
+        zOrderWorkaround = true;    
+        OG_LayoutContainer *c = NULL;
+        if (!OG.viewports.tail->hidden && OG.viewports.tail->container) 
+            c = OG.viewports.tail->container;
+        if (c && (!v->container || v->container->layout != c->layout))
+            OG_SetViewportOnTop(OG.viewports.tail->container->layout->viewport);
+        zOrderWorkaround = false;
+    }
+    
     if (OG.modalViewport && OG.modalViewport != v){
         if (!v->container || v->container->layout->viewport != OG.modalViewport){
             return;
