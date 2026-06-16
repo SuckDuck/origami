@@ -1,15 +1,11 @@
 #include <stdbool.h>
 #include "origami.h"
 
-extern void Viewport0();
-extern void Viewport1();
-extern void ModalViewport();
+extern void Window0();
 
 int main(int argc, char **argv){
     
-    Viewport0();
-    Viewport1();
-    ModalViewport();
+    Window0();
     
     OG_Init("origami_example", 60);
     while (true) {

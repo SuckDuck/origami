@@ -53,7 +53,6 @@ void OG_InputDialog(){
         "InputDialog", 
         (Rectangle){0,0,250, 25}, 
         1.0f, 1.0f, 
-        (OG_PanelsDimensions){}, 
         true, false, true, 
         &Init, 
         &Update, 
@@ -63,10 +62,6 @@ void OG_InputDialog(){
         NULL, 
         NULL, 
         &UI,
-        NULL, 
-        NULL, 
-        NULL, 
-        NULL, 
         &GetCmds, 
         NULL
     );
@@ -76,7 +71,7 @@ void OG_InputDialog(){
 }
 
 void OG_OpenInputDialog(void (*ok_callback)(char*), char *hint){
-    this->header = hint;
+    OG_SetHeader(this, hint);
     this->noTitleBar = hint == NULL;
     
     memset(buf, 0, 256);

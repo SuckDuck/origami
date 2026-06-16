@@ -34,10 +34,6 @@
 #define MIN_LAYOUT_SIZE 10
 #endif
 
-#ifndef OG_MIN_PANEL_SIZE
-#define OG_MIN_PANEL_SIZE 100
-#endif
-
 #ifndef OG_ZOOM_SPEED
 #define OG_ZOOM_SPEED 0.1f
 #endif
@@ -105,10 +101,8 @@
 typedef struct OG_LayoutLine OG_LayoutLine;
 typedef struct OG_LayoutContainer OG_LayoutContainer;
 typedef struct OG_Layout OG_Layout;
-typedef struct OG_Panel OG_Panel;
 typedef struct OG_Viewport OG_Viewport;
 typedef struct OG_ViewportLinkedList OG_ViewportLinkedList;
-typedef struct OG_PanelsDimensions OG_PanelsDimensions;
 typedef struct OG_Context OG_Context;
 
 typedef enum {
@@ -145,12 +139,6 @@ struct OG_Layout{
     OG_Viewport *viewport;
 };
 
-struct OG_Panel{
-    int size;
-    bool resizable;
-    mu_Context ctx;
-};
-
 struct OG_Viewport{
     char *title;
     char *header;
@@ -177,11 +165,6 @@ struct OG_Viewport{
 
     OG_Layout *layout;
     OG_LayoutContainer *container;
-
-    OG_Panel rightPanel;
-    OG_Panel leftPanel;
-    OG_Panel topPanel;
-    OG_Panel bottomPanel;
 
     void (*Init)(struct OG_Viewport*);
     void (*Update)(struct OG_Viewport*);
@@ -215,7 +198,6 @@ typedef enum{
     OG_STATE_RESIZING_LAYOUT,
     OG_STATE_RESIZING_LAYOUT_LINE,
     OG_STATE_RESIZING_VIEWPORT,
-    OG_STATE_RESIZING_PANEL,
     OG_STATE_ON_COMMAND_BAR
 } OG_State;
 
@@ -225,10 +207,6 @@ typedef enum{
     OG_TOP_PANEL,
     OG_BOTTOM_PANEL
 } OG_PanelType;
-
-struct OG_PanelsDimensions{
-    float left, right, top, bottom;
-};
 
 struct OG_Context{
     OG_State state;
@@ -272,9 +250,6 @@ struct OG_Context{
 extern OG_Context OG;
 
 float GetRatio(int units, int maxSize);
-void OG_UpdateViewportUIInput(OG_Viewport *v);
-void OG_CleanViewportUIInput(OG_Viewport *v);
-void OG_ProcessViewportUI(OG_Viewport *v);
 void OG_PushLog(char *format, ...);
 void OG_PushLogSimple(char *log);
 OG_Layout *OG_InitLayout(char *name, Rectangle r);
@@ -304,11 +279,11 @@ void OG_ToggleViewportByName(char *name);
 void OG_OpenViewportByName(char *name);
 void OG_CloseViewportByName(char *name);
 void OG_ChangeCursor(OG_Viewport *v, MouseCursor c);
-
+void OG_UnsetHeader(OG_Viewport *v);
+void OG_SetHeader(OG_Viewport *v, char *header);
 OG_Viewport *OG_InitViewport(char* title, 
                     Rectangle rect,
                     float minZoom, float maxZoom,
-                    OG_PanelsDimensions panelsDimensions,
                     bool hideCmd,
                     bool resizable,
                     bool isModal,
@@ -320,10 +295,6 @@ OG_Viewport *OG_InitViewport(char* title,
                     void (*RenderUnderlay)(OG_Viewport*),
                     void (*RenderOnScreen)(OG_Viewport*, Vector2),
                     void (*UI)(struct OG_Viewport*, mu_Context*),
-                    void (*RightPanel)(OG_Viewport*, mu_Context*), 
-                    void (*LeftPanel)(OG_Viewport*, mu_Context*), 
-                    void (*TopPanel)(OG_Viewport*, mu_Context*), 
-                    void (*BottomPanel)(OG_Viewport*, mu_Context*), 
                     const char** (GetCmds)(),
                     void (*ExecCmd)(OG_Viewport*, int argc, char **argv)
                     );

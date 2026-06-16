@@ -123,7 +123,6 @@ void OG_ContextMenu(){
         "ContextMenu", 
         (Rectangle){0,0,250, 250}, 
         1.0f, 1.0f,
-        (OG_PanelsDimensions){}, 
         true, false, true, 
         &Init, 
         &Update, 
@@ -133,10 +132,6 @@ void OG_ContextMenu(){
         NULL,
         NULL, 
         &UI,
-        NULL, 
-        NULL, 
-        NULL, 
-        NULL, 
         &GetCmds, 
         NULL
     );
@@ -165,7 +160,7 @@ static ContextMenu *OpenContextMenuHelper(void (*_callback)(int), int optQ){
 }
 
 void OG_OpenContextMenu(void (*_callback)(int), char *hint, int optQ, ...){
-    this->header = hint;
+    OG_SetHeader(this, hint);
     this->noTitleBar = hint == NULL;
     
     ContextMenu *cm = OpenContextMenuHelper(_callback, optQ);
@@ -182,7 +177,7 @@ void OG_OpenContextMenu(void (*_callback)(int), char *hint, int optQ, ...){
 }
 
 void OG_OpenContextMenuV2(void (*_callback)(int), char *hint, int optQ, char **opts){
-    this->header = hint;
+    OG_SetHeader(this, hint);
     this->noTitleBar = hint == NULL;
     
     ContextMenu *cm = OpenContextMenuHelper(_callback, optQ);
@@ -194,7 +189,7 @@ void OG_OpenContextMenuV2(void (*_callback)(int), char *hint, int optQ, char **o
 }
 
 void OG_OpenContextMenuV3(void (*_callback)(char*), char *hint, int optQ, char **opts){
-    this->header = hint;
+    OG_SetHeader(this, hint);
     this->noTitleBar = hint == NULL;
     
     // discard empty options

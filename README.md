@@ -6,17 +6,19 @@ Origami is a multi-viewport UI framework in C for building editor tools, built o
 
 Features:
 * Multiple independent viewports  
+* Viewport grouping with resizable splits
 * Show/hide, dragging and resizing support for viewports  
 * Z-order viewport stacking  
-* Modal viewports  
-* Built-in multiple UI panels per viewport via microui
-* Panel resizing support  
-* Per-viewport zoom and pan support  
+* Modal viewports
+* Per-viewport zoom and pan
 * Custom overlay and underlay rendering per viewport  
+* Per-viewport UI via microUI
 * Per-viewport argc/argv-style command interface  
-* On-screen logging support  
+* On-screen logging  
 * Callback-based API (update, render, UI, etc.)  
 * Built-in file dialog
+* Built-in context menu
+* Built-in input dialog
 
 ## Build
 
@@ -54,23 +56,27 @@ Then you can build Origami alongside your project from the same place.
 Before using Origami, it’s recommended to read the [microui usage guide](https://github.com/rxi/microui/blob/master/doc/usage.md).  
 Also, see the example in this repository.
 
-Origami has two main components: Command Bar and Viewports.
+Origami has three main components: Command Bar, Viewports, and Layouts.
 
-- **Command Bar** – A small command-line interface that opens with a shortcut (Shift + enter, by default).  
-Used to run commands and initially to open viewports.  
-- **Viewports** – Independent windows. They are the **central part of Origami** and have 4 parts:  
-  1. **Logic callbacks** – Callbacks for viewport logic, like `Init()` and `Update()`.
-  1. **Render callbacks** – `Render()`, `RenderOverlay()`, and `RenderUnderlay()`.  
-  1. **Panels callbacks** – Units attached to a viewport where UI elements (microui) can be placed.  
-  1. **Commands interface** – argc/argv-style interface run from the Command Bar. Each viewport can have custom commands.  
+- **Command Bar** – A small command-line interface opened with a shortcut (Shift + Enter by default).  
+  It is used to run commands and, initially, to open viewports.
+
+- **Viewports** – Independent windows. They are the **central part of Origami** and consist of four components:  
+  1. **Logic callbacks** – Functions such as `Init()` and `Update()` that define viewport behavior.  
+  2. **Render callbacks** – `Render()`, `RenderOverlay()`, and `RenderUnderlay()`.  
+  3. **UI callback** – Used to place `microUI` widgets inside viewports.  
+  4. **Command interface** – An `argc/argv`-style interface triggered from the Command Bar. Each viewport can define custom commands.
+
+- **Layouts** – The system used to group multiple viewports into a single unified structure with resizable split regions.
   
-
-![structure](media/structure.png)
+<br>
 
 The general usage workflow looks like this:
 
 - Register your viewports and their callbacks using `OG_InitViewport()`.  
 It’s recommended to wrap this in a helper function for each viewport, as the function signature is long.  
+- Optionally, build layouts using `OG_InitLayout()` and related layout functions.  
+  Layouts allow you to group multiple viewports into a single structure.
 - Call `OG_Init()` after registering all viewports.  
 - In your main loop, call `OG_Update()`.  
 - Call `OG_Free()` at the end of your application.
@@ -80,7 +86,7 @@ So your whole `main()` function can look like this:
 ```C
 int main(int argc, char **argv){
     
-    // Viewports init functions
+    // Viewports and layouts init functions
     Viewport0();
     Viewport1();
     

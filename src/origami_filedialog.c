@@ -159,7 +159,7 @@ static void RenderOverlay(OG_Viewport *v){
         DrawRectangle( //bg
             v->size.width - (OG.defaultFontSize+2), 0,
             (OG.defaultFontSize+2), v->size.height*-1,
-            *(Color*) &v->bottomPanel.ctx.style->colors[MU_COLOR_SCROLLBASE]
+            *(Color*) &v->ctx.style->colors[MU_COLOR_SCROLLBASE]
         );
 
         float scrollPercent = scroll*-1/contentSize;
@@ -167,7 +167,7 @@ static void RenderOverlay(OG_Viewport *v){
             v->size.width - (OG.defaultFontSize+2), v->size.height*-1*scrollPercent, 
             (OG.defaultFontSize+2), 
             (v->size.height*-1/contentSize)*(v->size.height*-1),
-            *(Color*) &v->bottomPanel.ctx.style->colors[MU_COLOR_SCROLLTHUMB]
+            *(Color*) &v->ctx.style->colors[MU_COLOR_SCROLLTHUMB]
         );
     }
 
@@ -267,7 +267,6 @@ void OG_FileDialog(){
             "FileDialog_AddressBar", 
             (Rectangle){}, 
             1.0f, 1.0f, 
-            (OG_PanelsDimensions){}, 
             true, false, false, 
             NULL, 
             NULL, 
@@ -277,10 +276,6 @@ void OG_FileDialog(){
             NULL, 
             NULL, 
             &AdressBar, 
-            NULL, 
-            NULL, 
-            NULL, 
-            NULL, 
             NULL, 
             NULL
         )
@@ -299,7 +294,6 @@ void OG_FileDialog(){
             "FileDialog_FileList", 
             (Rectangle){0,0,500,300}, 
             1.0f, 1.0f, 
-            (OG_PanelsDimensions){}, 
             true, false, false, 
             &Init, 
             &Update, 
@@ -308,10 +302,6 @@ void OG_FileDialog(){
             &RenderOverlay, 
             NULL, 
             NULL,
-            NULL, 
-            NULL, 
-            NULL, 
-            NULL, 
             NULL, 
             &GetCmds, 
             NULL
@@ -331,7 +321,6 @@ void OG_FileDialog(){
             "FileDialog_Footer", 
             (Rectangle){}, 
             1.0f, 1.0f, 
-            (OG_PanelsDimensions){}, 
             true, false, false, 
             NULL, 
             NULL, 
@@ -341,10 +330,6 @@ void OG_FileDialog(){
             NULL, 
             NULL, 
             &Footer, 
-            NULL, 
-            NULL, 
-            NULL, 
-            NULL, 
             NULL, 
             NULL
         )
@@ -357,6 +342,6 @@ void OG_OpenFileDialog(bool (*ok_callback)(char*), OG_FileDialogMode mode, char 
     currentMode = mode;
     selectedFile = NULL;
     OG_Viewport *v = OG_GetViewportByName("FileDialog");
-    v->header = msg;
+    OG_SetHeader(v, msg);
     OG_ToggleViewportByName("FileDialog");
 }
