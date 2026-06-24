@@ -7,7 +7,7 @@
 #include <raymath.h>
 #include <rlgl.h>
 #include "origami.h"
-#include "DejaVuSansMono-Bold.h"
+#include "CourierPrime-Bold-Custom.h"
 #include "icons.h"
 #include "microui.h"
 
@@ -1403,8 +1403,8 @@ int OG_Init(char* title, int fps){
 
     OG.defaultFont = LoadFontFromMemory(
         ".ttf",
-        DejaVuSansMono_Bold_ttf,
-        DejaVuSansMono_Bold_ttf_len,
+        CourierPrime_Bold_Custom_ttf,
+        CourierPrime_Bold_Custom_ttf_len,
         32,
         codepoints,
         count
