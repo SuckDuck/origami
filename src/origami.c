@@ -530,9 +530,16 @@ static void IdleState(){
     if (!OG_MouseInViewport(OG.viewports.tail,false,false,false)){
         for (OG_Viewport *v = OG.viewports.tail->prev; v != NULL; v = v->prev){ // for each viewport except the last-one
             if (v->hidden || !OG_MouseInViewport(v, false, false,false)) continue;
-            if (IsViewportFullyVisible(v) || IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) 
-                    OG.viewportJustSwitched = true;
+            if (IsViewportFullyVisible(v) && 
+                !IsMouseButtonDown(MOUSE_BUTTON_LEFT) && 
+                !IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && 
+                !IsMouseButtonDown(MOUSE_BUTTON_MIDDLE)){
+                    OG_SetViewportOnTop(v);
+                    break;
+            }
+            
+            else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                OG.viewportJustSwitched = true;
                 OG_SetViewportOnTop(v);
                 break;
             }

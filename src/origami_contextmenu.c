@@ -200,6 +200,8 @@ void OG_OpenContextMenuV3(void (*_callback)(char*), char *hint, int optQ, char *
             Q++;
     }
     
+    if (Q <= 0) return;
+
     ContextMenu *cm = OpenContextMenuHelper(NULL, Q);
     cm->callbackStr = _callback;
     cm->callback = NULL;
