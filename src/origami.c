@@ -7,7 +7,7 @@
 #include <raymath.h>
 #include <rlgl.h>
 #include "origami.h"
-#include "CourierPrime-Bold-Custom.h"
+#include "IBMPlexMono-Medium.h"
 #include "icons.h"
 #include "microui.h"
 
@@ -1403,8 +1403,8 @@ int OG_Init(char* title, int fps){
 
     OG.defaultFont = LoadFontFromMemory(
         ".ttf",
-        CourierPrime_Bold_Custom_ttf,
-        CourierPrime_Bold_Custom_ttf_len,
+        IBMPlexMono_Medium_ttf,
+        IBMPlexMono_Medium_ttf_len,
         32,
         codepoints,
         count
