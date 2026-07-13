@@ -222,14 +222,24 @@ void RenderViewportUI(OG_Viewport *v){
     while (mu_next_command(&v->ctx, &cmd)){
         switch(cmd->type){
             case MU_COMMAND_TEXT: {
-                DrawTextEx(
-                    *(Font*)(cmd->text.font), 
-                    cmd->text.str, 
-                    (Vector2){cmd->text.pos.x,cmd->text.pos.y},
-                    OG.defaultFontSize,
-                    2,
-                    *(Color*)&cmd->text.color
-                );
+                char *text = cmd->text.str;
+                char *line = strtok(text, "\n");
+                float y = cmd->text.pos.y;
+
+                while (line != NULL){
+                    DrawTextEx(
+                        *(Font*)(cmd->text.font), 
+                        line, 
+                        (Vector2){cmd->text.pos.x,y},
+                        OG.defaultFontSize,
+                        2,
+                        *(Color*)&cmd->text.color
+                    );
+
+                    y += OG.defaultFontSize;
+                    line = strtok(NULL, "\n");
+                }
+
                 break;
             }
 
