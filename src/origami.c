@@ -222,22 +222,28 @@ void RenderViewportUI(OG_Viewport *v){
     while (mu_next_command(&v->ctx, &cmd)){
         switch(cmd->type){
             case MU_COMMAND_TEXT: {
-                char *text = cmd->text.str;
-                char *line = strtok(text, "\n");
+                const char *start = cmd->text.str;
+                const char *end = start;
                 float y = cmd->text.pos.y;
 
-                while (line != NULL){
+                while (1) {
+                    while (*end && *end != '\n')
+                        end++;
+
                     DrawTextEx(
-                        *(Font*)(cmd->text.font), 
-                        line, 
-                        (Vector2){cmd->text.pos.x,y},
+                        *(Font*)cmd->text.font,
+                        TextSubtext(start, 0, (int)(end - start)),
+                        (Vector2){ cmd->text.pos.x, y },
                         OG.defaultFontSize,
                         2,
                         *(Color*)&cmd->text.color
                     );
 
+                    if (*end == '\0')
+                        break;
+
                     y += OG.defaultFontSize;
-                    line = strtok(NULL, "\n");
+                    start = ++end;
                 }
 
                 break;
@@ -1350,6 +1356,7 @@ OG_Viewport *OG_InitViewport(char* title,
     v->ctx.style->colors[MU_COLOR_TITLEBG]   = *(mu_Color*) &OG_VIEWPORT_TITLE_C;
     v->ctx.style->colors[MU_COLOR_TITLETEXT] = *(mu_Color*) &OG_TEXT_C;
     v->ctx.style->colors[MU_COLOR_BORDER]    = *(mu_Color*) &OG_VIEWPORT_OUTLINE_C;
+    v->ctx.style->colors[MU_COLOR_SCROLLTHUMB] = (mu_Color){35, 35, 35, 255};
     v->UI = UI;
 
     // Flags
