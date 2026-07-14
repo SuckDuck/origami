@@ -1229,18 +1229,21 @@ void OG_ToggleViewport(OG_Viewport *v){
             OG.modalViewport = v;
     }
 
-    else if (v == OG.viewports.tail){
-        if (OG.modalViewport)
+    else {
+        if (OG.modalViewport){
             OG.modalViewport = NULL;
-        
-        while (true){
-            if (v == NULL) return;
-            if (!v->hidden){
-                OG_SetViewportOnTop(v);
-                return;
-            }
+        }
             
-            v = v->prev;    
+        if (v == OG.viewports.tail){
+            while (true){
+                if (v == NULL) return;
+                if (!v->hidden){
+                    OG_SetViewportOnTop(v);
+                    return;
+                }
+                
+                v = v->prev;    
+            }
         }
     }
 }
