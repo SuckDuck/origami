@@ -247,6 +247,8 @@ struct OG_Context{
     // Flags
     bool drawFps;
     bool viewportJustSwitched;
+
+    void (*RenderBackground)(void);
 };
 
 extern OG_Context OG;

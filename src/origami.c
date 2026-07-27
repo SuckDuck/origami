@@ -1530,6 +1530,9 @@ bool OG_RenderFrame(){
     BeginDrawing();
     ClearBackground(OG_BG_C);
     
+    if (OG.RenderBackground)
+        OG.RenderBackground();
+    
     // FOR EACH VIEWPORT
     for (OG_Viewport *v = OG.viewports.head; v != NULL; v = v->next){
         if (v->hidden) continue;
