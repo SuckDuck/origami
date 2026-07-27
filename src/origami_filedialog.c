@@ -1,4 +1,3 @@
-#include <linux/limits.h>
 #include <raylib.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -26,7 +25,7 @@ static const char *commands[] = {
 static OG_Viewport *this;
 static FileList pwdFiles;
 static FileEntrie *selectedFile;
-static char filename[PATH_MAX];
+static char filename[OG_PATH_MAX];
 static float contentSize = 0.0f;
 static float scroll = 0.0f;
 
@@ -179,7 +178,7 @@ static void RenderOverlay(OG_Viewport *v){
 
 static void AdressBar(OG_Viewport *v, mu_Context *ctx){
     mu_layout_row(ctx, 2, (const int[]){-40, -1}, 25);
-    mu_textbox_ex(ctx, (char*) GetWorkingDirectory(), PATH_MAX, MU_OPT_NOINTERACT);
+    mu_textbox_ex(ctx, (char*) GetWorkingDirectory(), OG_PATH_MAX, MU_OPT_NOINTERACT);
     if(mu_button(ctx, "Up")){
         if (ChangeDirectory("..")){
             scroll = 0;
@@ -196,7 +195,7 @@ static void Footer(OG_Viewport *v, mu_Context *ctx){
     
     if (currentMode != OG_FD_MODE_SELECT_DIR){
         mu_label(ctx, "FileName:");
-        if (mu_textbox(ctx, filename, PATH_MAX) && MU_RES_CHANGE){
+        if (mu_textbox(ctx, filename, OG_PATH_MAX) && MU_RES_CHANGE){
             selectedFile = NULL;
         }
     }

@@ -94,6 +94,8 @@
 #define OG_COMMAND_BAR_KEY KEY_ENTER
 #endif
 
+#define OG_PATH_MAX 4096
+
 #include <raylib.h>
 #include "microui.h"
 #include "origami_tools.h"
