@@ -30,7 +30,8 @@ static float contentSize = 0.0f;
 static float scroll = 0.0f;
 
 static OG_FileDialogMode currentMode;
-static bool (*Ok)(char*);
+static bool (*Ok)(char*, void*);
+void *okParams;
 static void (*OnClose)(bool ok);
 
 static FileList InitFileList(char *dir){
@@ -117,7 +118,7 @@ static void Update(OG_Viewport *v){
                     }
                     
                     else{
-                        if (Ok != NULL && Ok(filename)){
+                        if (Ok != NULL && Ok(filename, okParams)){
                             OG_CloseViewportByName(v->container->layout->viewport->title);
                             if (OnClose) OnClose(true);
                         }
@@ -210,7 +211,7 @@ static void Footer(OG_Viewport *v, mu_Context *ctx){
     
     if (currentMode == OG_FD_MODE_SELECT_DIR){
         if (selectedFile && selectedFile->isDir){
-            if (mu_button(ctx, "Ok") && Ok && Ok(filename)){
+            if (mu_button(ctx, "Ok") && Ok && Ok(filename, okParams)){
                 OG_CloseViewportByName(v->container->layout->viewport->title);
                 if (OnClose) OnClose(true);
             }
@@ -233,7 +234,7 @@ static void Footer(OG_Viewport *v, mu_Context *ctx){
             }
         }
         
-        else if (Ok != NULL && Ok(filename)){
+        else if (Ok != NULL && Ok(filename, okParams)){
             OG_CloseViewportByName(v->container->layout->viewport->title);
             if (OnClose) OnClose(true);
         }
@@ -349,8 +350,9 @@ void OG_FileDialog(){
 
 }
 
-void OG_OpenFileDialog(bool (*ok_callback)(char*), void (*close_callback)(bool ok), OG_FileDialogMode mode, char *msg){
+void OG_OpenFileDialog(bool (*ok_callback)(char*, void*), void *okparam, void (*close_callback)(bool ok), OG_FileDialogMode mode, char *msg){
     Ok = ok_callback;
+    okParams = okparam;
     OnClose = close_callback;
     currentMode = mode;
     selectedFile = NULL;

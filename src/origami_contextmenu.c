@@ -15,8 +15,9 @@
 typedef struct ContextMenu {
     char** options;
     int optionsQ;
-    void (*callback)(int);
-    void (*callbackStr)(char*);
+    void (*callback)(int, void*);
+    void (*callbackStr)(char*, void*);
+    void *callbackParam;
 } ContextMenu;
 
 static const char *commands[] = {
@@ -97,8 +98,8 @@ static void UI(OG_Viewport *v, mu_Context *ctx){
         for (int i=0; i<menus[menusQ-1].optionsQ; i++){
             if (mu_button_ex(ctx, menus[menusQ-1].options[i], 0, 0)){
                 OG_ToggleViewport(v);
-                if (menus[menusQ-1].callback) menus[menusQ-1].callback(i);
-                else if (menus[menusQ-1].callbackStr) menus[menusQ-1].callbackStr(menus[menusQ-1].options[i]);
+                if (menus[menusQ-1].callback) menus[menusQ-1].callback(i, menus[menusQ-1].callbackParam);
+                else if (menus[menusQ-1].callbackStr) menus[menusQ-1].callbackStr(menus[menusQ-1].options[i], menus[menusQ-1].callbackParam);
                 CloseContextMenu();
             }
 
@@ -139,7 +140,7 @@ void OG_ContextMenu(){
     v->updateAlways = true;
 }
 
-static ContextMenu *OpenContextMenuHelper(void (*_callback)(int), int optQ){
+static ContextMenu *OpenContextMenuHelper(void (*_callback)(int, void*), void *param, int optQ){
     Vector2 mousePos = GetMousePosition();
     if (menusQ == 0)
         this->pos = mousePos;
@@ -149,6 +150,8 @@ static ContextMenu *OpenContextMenuHelper(void (*_callback)(int), int optQ){
 
     menus[menusQ].callback = _callback;
     menus[menusQ].callbackStr = NULL;
+
+    menus[menusQ].callbackParam = param;
     OG_ResizeViewport(
         this, this->size.width, 
         (optQ*OPT_HEIGHT+1) > MAX_HEIGHT?MAX_HEIGHT:(optQ*OPT_HEIGHT+1)
@@ -159,11 +162,11 @@ static ContextMenu *OpenContextMenuHelper(void (*_callback)(int), int optQ){
     return &menus[menusQ-1];
 }
 
-void OG_OpenContextMenu(void (*_callback)(int), char *hint, int optQ, ...){
+void OG_OpenContextMenu(void (*_callback)(int, void*), void *param, char *hint, int optQ, ...){
     OG_SetHeader(this, hint);
     this->noTitleBar = hint == NULL;
     
-    ContextMenu *cm = OpenContextMenuHelper(_callback, optQ);
+    ContextMenu *cm = OpenContextMenuHelper(_callback, param, optQ);
 
     va_list args;
     va_start(args, optQ);
@@ -176,11 +179,11 @@ void OG_OpenContextMenu(void (*_callback)(int), char *hint, int optQ, ...){
     va_end(args);
 }
 
-void OG_OpenContextMenuV2(void (*_callback)(int), char *hint, int optQ, char **opts){
+void OG_OpenContextMenuV2(void (*_callback)(int, void*), void *param, char *hint, int optQ, char **opts){
     OG_SetHeader(this, hint);
     this->noTitleBar = hint == NULL;
     
-    ContextMenu *cm = OpenContextMenuHelper(_callback, optQ);
+    ContextMenu *cm = OpenContextMenuHelper(_callback, param, optQ);
     for (int i = 0; i < optQ; i++) {
         char *opt = opts[i];
         cm->options[i] = calloc(strlen(opt)+1, sizeof(char));
@@ -188,7 +191,7 @@ void OG_OpenContextMenuV2(void (*_callback)(int), char *hint, int optQ, char **o
     }
 }
 
-void OG_OpenContextMenuV3(void (*_callback)(char*), char *hint, int optQ, char **opts){
+void OG_OpenContextMenuV3(void (*_callback)(char*, void*), void *param, char *hint, int optQ, char **opts){
     OG_SetHeader(this, hint);
     this->noTitleBar = hint == NULL;
     
@@ -202,7 +205,7 @@ void OG_OpenContextMenuV3(void (*_callback)(char*), char *hint, int optQ, char *
     
     if (Q <= 0) return;
 
-    ContextMenu *cm = OpenContextMenuHelper(NULL, Q);
+    ContextMenu *cm = OpenContextMenuHelper(NULL, param, Q);
     cm->callbackStr = _callback;
     cm->callback = NULL;
 
