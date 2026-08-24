@@ -173,7 +173,7 @@ static void Update(OG_Viewport *v){
                     
                 else {
                     selectedFile = e;
-                    strcpy(filename, e->filename);
+                    strcpy(filename, e->path);
                 }
 
             }
