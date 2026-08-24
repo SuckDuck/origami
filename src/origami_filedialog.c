@@ -1,4 +1,5 @@
 #include <raylib.h>
+#include <ctype.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -25,6 +26,7 @@ static const char *commands[] = {
 static OG_Viewport *this;
 static FileList pwdFiles;
 static FileEntrie *selectedFile;
+static char *filter;
 static char filename[OG_PATH_MAX];
 static float contentSize = 0.0f;
 static float scroll = 0.0f;
@@ -34,28 +36,69 @@ static bool (*Ok)(char*, void*);
 void *okParams;
 static void (*OnClose)(bool ok);
 
+static void LowerCaseStr(char *str){
+    for(int i = 0; str[i]; i++)
+        str[i] = tolower(str[i]);
+}
+
+static void SortFileList(FileList *fl){
+    bool repeat = false;
+    while (true){
+        repeat = false;
+
+        for (int i=0; i<fl->count-1; i++){
+            if (strcmp(fl->entries[i].filename, fl->entries[i+1].filename) > 0){
+                FileEntrie tmp = fl->entries[i];
+                fl->entries[i] = fl->entries[i+1];
+                fl->entries[i+1] = tmp;
+                repeat = true;
+            }
+        }
+        
+        if (!repeat) break;
+    }
+}
+
 static FileList InitFileList(char *dir){
     FilePathList f = LoadDirectoryFiles(dir);
-    
-    FileList fl;
-    fl.count = f.count;
-    fl.entries = calloc(f.count, sizeof(FileEntrie));
+    FileList fl = {0};
 
     for (int i=0; i<f.count; i++){
-        FileEntrie *e = &fl.entries[i];
-        e->isDir = false;
-
-        // +2 because of \0 and / in case of path being a dir
-        int len = strlen(f.paths[i])+2;
-        e->path = calloc(len, sizeof(char));
-        strcpy(e->path, f.paths[i]);
-        e->filename = (char*) GetFileName(e->path);
-        if (!IsPathFile(e->path)){
-            e->isDir = true;
-            e->path[len-2] = '/';
+        if (!filter){
+            fl.count++;
+            continue;
         }
+        const char *ext = GetFileExtension(f.paths[i]);
+        if (!IsPathFile(f.paths[i]) || (ext && strcmp(ext, filter) == 0))
+            fl.count++;
     }
 
+    fl.entries = calloc(fl.count, sizeof(FileEntrie));
+    int ii=0;
+    for (int i=0; i<f.count; i++){
+        bool isDir = !IsPathFile(f.paths[i]);
+        if (filter){
+            const char *ext = GetFileExtension(f.paths[i]);
+            if (!isDir && (!ext || strcmp(ext, filter) != 0))
+                continue;
+        }
+
+        FileEntrie *e = &fl.entries[ii++];
+
+        e->isDir = isDir;
+        e->path = calloc(strlen(f.paths[i])+1, sizeof(char));
+        strcpy(e->path, f.paths[i]);
+
+        // +2 because of \0 and / in case of path being a dir        
+        e->filename = calloc(strlen(GetFileName(e->path))+2, sizeof(char));
+        strcpy(e->filename, GetFileName(e->path));
+
+        if (e->isDir)
+            e->filename[strlen(GetFileName(e->path))] = '/';
+        LowerCaseStr(e->filename);
+    }
+
+    SortFileList(&fl);
     UnloadDirectoryFiles(f);
     return fl;
 }
@@ -64,6 +107,7 @@ static void FreeFileList(FileList fl){
     for (int i=0; i<fl.count; i++){
         FileEntrie *e = &fl.entries[i];
         free(e->path);
+        free(e->filename);
     }
         
     free(fl.entries);
@@ -350,13 +394,27 @@ void OG_FileDialog(){
 
 }
 
-void OG_OpenFileDialog(bool (*ok_callback)(char*, void*), void *okparam, void (*close_callback)(bool ok), OG_FileDialogMode mode, char *msg){
-    Ok = ok_callback;
-    okParams = okparam;
-    OnClose = close_callback;
-    currentMode = mode;
-    selectedFile = NULL;
-    OG_Viewport *v = OG_GetViewportByName("FileDialog");
-    OG_SetHeader(v, msg);
-    OG_ToggleViewportByName("FileDialog");
+void OG_OpenFileDialog(
+    bool (*ok_callback)(char*, void*), 
+    void *okparam, 
+    void (*close_callback)(bool ok), 
+    OG_FileDialogMode mode, 
+    char *ext, 
+    char *msg){
+        
+        Ok = ok_callback;
+        okParams = okparam;
+        OnClose = close_callback;
+        currentMode = mode;
+        selectedFile = NULL;
+        if (filter)
+            free(filter);
+        filter = strdup(ext);
+        OG_Viewport *v = OG_GetViewportByName("FileDialog");
+        
+        OG_SetHeader(v, msg);
+        OG_ToggleViewportByName("FileDialog");
+        if (pwdFiles.count > 0 && pwdFiles.entries)
+            FreeFileList(pwdFiles);
+        pwdFiles = InitFileList(".");
 }
