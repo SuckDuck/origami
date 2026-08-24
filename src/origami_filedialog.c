@@ -42,6 +42,7 @@ static void LowerCaseStr(char *str){
 }
 
 static void SortFileList(FileList *fl){
+    if (fl->count <= 0) return;
     bool repeat = false;
     while (true){
         repeat = false;
