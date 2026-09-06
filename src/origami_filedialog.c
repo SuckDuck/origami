@@ -410,7 +410,9 @@ void OG_OpenFileDialog(
         selectedFile = NULL;
         if (filter)
             free(filter);
-        filter = strdup(ext);
+        filter = NULL;
+        if (ext) filter = strdup(ext);
+
         OG_Viewport *v = OG_GetViewportByName("FileDialog");
         
         OG_SetHeader(v, msg);
