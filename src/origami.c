@@ -1406,7 +1406,7 @@ int OG_Init(char* title, int fps){
     //Raylib init
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(500, 500, title);
-    #ifndef PLATFORM_WEB
+    #ifndef __EMSCRIPTEN__
         MaximizeWindow();
     #endif
     SetExitKey(0);
