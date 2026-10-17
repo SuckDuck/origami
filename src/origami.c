@@ -1186,6 +1186,10 @@ void OG_ViewportUpdateZoom(OG_Viewport* v){
     if (OG.viewports.tail != v) return;
     if (!OG_MouseInViewport(v, false, false, true)) return;
     float wheel = GetMouseWheelMove();
+    wheel = (wheel > 0) - (wheel < 0);
+    #ifdef __EMSCRIPTEN__
+        wheel = -wheel;
+    #endif
     float factor = 1.0f + wheel * OG_ZOOM_SPEED;
     v->camera.zoom *= factor;
     if (v->camera.zoom < v->minZoom) v->camera.zoom = v->minZoom;
