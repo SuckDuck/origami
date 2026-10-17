@@ -178,7 +178,14 @@ void UpdateViewportUIInput(OG_Viewport *v){
     if (v == OG.viewports.tail){
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) 
             mu_input_mousedown(&v->ctx, mousePosition.x,mousePosition.y,MU_MOUSE_LEFT);
-        mu_input_scroll(&v->ctx, 0, GetMouseWheelMove()*OG_SCROLL_SPEED*-1);
+
+        float wheel = GetMouseWheelMove();
+        wheel = (wheel > 0) - (wheel < 0);
+        #ifdef __EMSCRIPTEN__
+            wheel = -wheel;
+        #endif
+        
+        mu_input_scroll(&v->ctx, 0, wheel*OG_SCROLL_SPEED*-1);
         if (IsKeyPressed(KEY_LEFT_SHIFT)) mu_input_keydown(&v->ctx, MU_KEY_SHIFT);    
         if (IsKeyPressed(KEY_ENTER)) mu_input_keydown(&v->ctx, MU_KEY_RETURN);
         if (IsKeyPressed(KEY_BACKSPACE)) mu_input_keydown(&v->ctx, MU_KEY_BACKSPACE);
@@ -1091,7 +1098,12 @@ bool OG_MouseInViewport(OG_Viewport* v, bool titleBar, bool resizeHandle, bool o
 float OG_GetMouseWheelMove(OG_Viewport *v){
     if (OG.viewports.tail != v) return 0.0f;
     if (!OG_MouseInViewport(v, false, false, true)) return 0.0f;
-    return GetMouseWheelMove();
+    float wheel = GetMouseWheelMove();
+    wheel = (wheel > 0) - (wheel < 0);
+    #ifdef __EMSCRIPTEN__
+        wheel = -wheel;
+    #endif
+    return wheel;
 }
 
 Vector2 OG_GetMouseOverlayPosition(OG_Viewport* v){
