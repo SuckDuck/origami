@@ -1405,8 +1405,10 @@ int OG_Init(char* title, int fps){
     
     //Raylib init
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(500, 500, title); // width and height cannot be 0 because of wasm
-    MaximizeWindow();
+    InitWindow(500, 500, title);
+    #ifndef PLATFORM_WEB
+        MaximizeWindow();
+    #endif
     SetExitKey(0);
     SetTargetFPS(fps);
 
