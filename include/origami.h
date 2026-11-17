@@ -2,6 +2,7 @@
 #define origami_h
 
 
+#include <stdint.h>
 #ifndef OG_DEFAULT_FONT_SIZE
 #define OG_DEFAULT_FONT_SIZE 13
 #endif
@@ -20,14 +21,6 @@
 
 #ifndef OG_VIEWPORT_PANEL_HANDLE_S
 #define OG_VIEWPORT_PANEL_HANDLE_S 5
-#endif
-
-// Dirty workaround, this should be correctly removed
-#ifndef OG_VIEWPORT_MIN_W
-#define OG_VIEWPORT_MIN_W 1
-#endif
-#ifndef OG_VIEWPORT_MIN_H
-#define OG_VIEWPORT_MIN_H 1
 #endif
 
 #ifndef MIN_LAYOUT_SIZE
@@ -113,6 +106,12 @@ typedef enum {
 } OG_LayoutLineType;
 
 typedef enum {
+    OG_ESC_CAPTURE_FALSE,
+    OG_ESC_CAPTURE_TRUE,
+    OG_ESC_CAPTURE_AUTO
+} OG_EscCapture;
+
+typedef enum {
     OG_LAYOUT_LINE_TOP,
     OG_LAYOUT_LINE_BOTTOM,
     OG_LAYOUT_LINE_LEFT,
@@ -164,6 +163,8 @@ struct OG_Viewport{
     bool noBorder;
 
     bool needsRedraw;
+    
+    OG_EscCapture escCapture;
 
     OG_Layout *layout;
     OG_LayoutContainer *container;
@@ -283,6 +284,9 @@ void OG_ToggleViewportByName(char *name);
 void OG_OpenViewportByName(char *name);
 void OG_CloseViewportByName(char *name);
 void OG_ChangeCursor(OG_Viewport *v, MouseCursor c);
+void OG_CaptureEsc(OG_Viewport *v);
+void OG_ReleaseEsc(OG_Viewport *v);
+void OG_CaptureEscAutoRelease(OG_Viewport *v);
 void OG_UnsetHeader(OG_Viewport *v);
 void OG_SetHeader(OG_Viewport *v, char *header);
 OG_Viewport *OG_InitViewport(char* title, 

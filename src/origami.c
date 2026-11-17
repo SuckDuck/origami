@@ -720,11 +720,17 @@ static void IdleState(){
 
     // VIEWPORT EXIT
     if (IsKeyPressed(KEY_ESCAPE)){
-        if (OG_MouseInViewport(v, false, false, false)){
-            if (v->container)
-                OG_ToggleViewport(v->container->layout->viewport);
-            else OG_ToggleViewport(v);
-            return;
+        if (v->escCapture == OG_ESC_CAPTURE_FALSE){
+            if (OG_MouseInViewport(v, false, false, false)){
+                if (v->container)
+                    OG_ToggleViewport(v->container->layout->viewport);
+                else OG_ToggleViewport(v);
+                return;
+            }
+        }
+
+        else if (v->escCapture == OG_ESC_CAPTURE_AUTO){
+            OG_ReleaseEsc(v);
         }
     }
 
@@ -984,13 +990,13 @@ void OG_LayoutAddViewport(OG_LayoutContainer *c, OG_Viewport *v){
 
 Vector2 OG_ResizeViewport(OG_Viewport *v, int w, int h){
     if (w < 0) w = v->size.width;
-    else if (w < OG_VIEWPORT_MIN_W) w = OG_VIEWPORT_MIN_W;
+    else if (w < 2) w = 2;
 
     if (h < 0) h = v->size.height;
-    else if (h < OG_VIEWPORT_MIN_H) h = OG_VIEWPORT_MIN_H;
+    else if (h < 2) h = 2;
     
-    if (w >= OG_VIEWPORT_MIN_W) v->size.width = w;
-    if (h >= OG_VIEWPORT_MIN_H) v->size.height = h*-1;
+    if (w >= 2) v->size.width = w;
+    if (h >= 2) v->size.height = h*-1;
     
     if (!v->disableOffsetUpdate){
         v->camera.offset = (Vector2){
@@ -1304,6 +1310,18 @@ void OG_ChangeCursor(OG_Viewport *v, MouseCursor c){
     }
     
     OG.nextCursor = c;
+}
+
+void OG_CaptureEsc(OG_Viewport *v){
+    v->escCapture = OG_ESC_CAPTURE_TRUE;
+}
+
+void OG_ReleaseEsc(OG_Viewport *v){
+    v->escCapture = OG_ESC_CAPTURE_FALSE;
+}
+
+void OG_CaptureEscAutoRelease(OG_Viewport *v){
+    v->escCapture = OG_ESC_CAPTURE_AUTO;
 }
 
 void OG_UnsetHeader(OG_Viewport *v){
@@ -1630,10 +1648,10 @@ bool OG_RenderFrame(){
             mousePos.y - v->pos.y
         };
 
-        float minW = OG_VIEWPORT_MIN_W;
+        float minW = 2;
         if (rect.width < minW) rect.width = minW;
             
-        float minH = OG_VIEWPORT_MIN_H + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H);
+        float minH = 2 + (v->noTitleBar ? 0:OG_VIEWPORT_TITLE_H);
         if (rect.height < minH) rect.height = minH;
         
         DrawRectangleLinesEx(
